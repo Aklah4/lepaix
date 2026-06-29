@@ -3,4 +3,5 @@ pymongo[srv]
 bcrypt
 python-dotenv
 cloudinary
+gunicorn
 
