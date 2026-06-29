@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Products — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}" class="active">Products</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Catalog</p>
+        <h1>Products</h1>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('admin_products.add') }}" class="btn-add">+ Add product</a>
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link">Sign out</a>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- Filters -->
+    <form class="filter-row" method="get">
+      <input class="filter-input" type="text" name="q" value="{{ search }}" placeholder="Search products…" />
+      <select class="filter-select" name="status">
+        <option value="">All statuses</option>
+        <option value="published" {% if selected_status=='published' %}selected{% endif %}>Published</option>
+        <option value="draft"     {% if selected_status=='draft'     %}selected{% endif %}>Draft</option>
+      </select>
+      <select class="filter-select" name="category">
+        <option value="">All categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_category==cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      <button class="filter-btn" type="submit">Filter</button>
+    </form>
+
+    <!-- Table -->
+    <div class="panel">
+      {% if products %}
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+          <tr>
+            <td>
+              <div class="product-row">
+                <div class="product-thumb"
+                     style="background:{{ p.bg if p.bg else '#f0ede8' }};">
+                  {% if p.images %}
+                  <img src="{{ url_for('static', filename='uploads/' + p.images[0]) }}"
+                       alt="{{ p.name }}" />
+                  {% endif %}
+                </div>
+                <span class="product-name">{{ p.name }}</span>
+              </div>
+            </td>
+            <td>{{ p.get('category', '—') }}</td>
+            <td>${{ '%.2f'|format(p.price) }}</td>
+            <td>{{ p.get('stock', 0) }}</td>
+            <td>
+              <span class="status-pill status-{{ p.status }}">{{ p.status }}</span>
+            </td>
+            <td class="row-actions">
+              <a href="{{ url_for('admin_products.edit', product_id=p._id) }}">Edit</a>
+              <form method="post"
+                    action="{{ url_for('admin_products.delete', product_id=p._id) }}"
+                    onsubmit="return confirm('Delete {{ p.name }}?');"
+                    style="display:inline;">
+                <button type="submit" class="delete-btn">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      {% if total_pages > 1 %}
+      <div class="pagination">
+        {% for pg in range(1, total_pages + 1) %}
+        <a class="page-link {% if pg == page %}active{% endif %}"
+           href="?page={{ pg }}&q={{ search }}&status={{ selected_status }}&category={{ selected_category }}">
+          {{ pg }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <p>No products found.</p>
+        <a href="{{ url_for('admin_products.add') }}" class="btn-add">Add your first product</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+  :root { --bg:#f7f4f0;--surface:#fff;--border:#e8e4df;--text:#1a1a18;--muted:#6b6b67;--accent:#e8341a; }
+  .admin-shell { display:grid;grid-template-columns:260px 1fr;gap:28px;min-height:calc(100vh - 100px); }
+  .admin-sidebar { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 24px;display:flex;flex-direction:column;gap:28px; }
+  .brand { font-family:'Playfair Display',serif;font-size:24px; }
+  .admin-nav { display:grid;gap:12px; }
+  .admin-nav a { display:block;color:var(--text);padding:14px 18px;border-radius:14px;font-size:14px;border:1px solid transparent; }
+  .admin-nav a.active,.admin-nav a:hover { background:var(--bg);border-color:var(--border); }
+  .admin-content { background:transparent; }
+  .admin-header { display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px; }
+  .eyebrow { text-transform:uppercase;font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px; }
+  .admin-header h1 { margin:0;font-size:2rem;line-height:1.05; }
+  .header-actions { display:flex;align-items:center;gap:12px; }
+  .btn-add { padding:10px 18px;border-radius:999px;background:var(--text);color:#fff;font-size:13px;font-family:inherit;border:none;cursor:pointer;text-decoration:none; }
+  .text-link { font-size:14px;color:var(--muted); }
+
+  .flash { padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px; }
+  .flash-success { background:#e6f9f0;color:#1a7a4a;border:1px solid #b0e8cc; }
+  .flash-error   { background:#fef2f0;color:#c0392b;border:1px solid #f5c6c2; }
+
+  .filter-row { display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap; }
+  .filter-input { padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;flex:1;min-width:180px; }
+  .filter-select { padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;cursor:pointer; }
+  .filter-btn { padding:9px 18px;border-radius:8px;background:var(--text);color:#fff;border:none;font-size:13px;font-family:inherit;cursor:pointer; }
+
+  .panel { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:22px;overflow:auto; }
+  .product-table { width:100%;border-collapse:collapse;font-size:14px; }
+  .product-table th { padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap; }
+  .product-table td { padding:14px;border-bottom:1px solid var(--border);vertical-align:middle; }
+  .product-table tr:last-child td { border-bottom:none; }
+  .product-row { display:flex;align-items:center;gap:12px; }
+  .product-thumb { width:48px;height:48px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f0ede8;position:relative; }
+  .product-thumb img { width:100%;height:100%;object-fit:cover; }
+  .product-name { font-weight:500; }
+  .status-pill { padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase; }
+  .status-published { background:#e6f9f0;color:#1a7a4a; }
+  .status-draft     { background:#f5f5f3;color:var(--muted); }
+  .row-actions { display:flex;gap:10px;align-items:center; }
+  .row-actions a { font-size:13px;color:var(--text);text-decoration:underline; }
+  .delete-btn { background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0; }
+
+  .pagination { display:flex;gap:6px;margin-top:20px;justify-content:center; }
+  .page-link { width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--text); }
+  .page-link.active { background:var(--text);color:#fff;border-color:var(--text); }
+
+  .empty-state { padding:60px;text-align:center;color:var(--muted); }
+  .empty-state p { margin-bottom:16px; }
+</style>
+{% endblock %}

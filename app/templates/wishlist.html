@@ -1,0 +1,327 @@
+{% extends "store_base.html" %}
+
+{% block title %}Wishlist — Lepaix{% endblock %}
+
+{% block head_styles %}
+  /* ── PAGE HEADER ── */
+  .wishlist-header {
+    background: #f0ede8;
+    padding: 64px 32px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .wishlist-header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .wishlist-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .wishlist-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .wishlist-header-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── PRODUCT GRID ── */
+  .wishlist-body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .wishlist-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .wishlist-count { font-size: 13px; color: var(--muted); }
+  .wishlist-clear {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.15s;
+  }
+  .wishlist-clear:hover { color: var(--accent); }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px 24px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .product-card {
+    display: block;
+    color: inherit;
+    animation: fadeUp 0.5s ease both;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .product-card.removing {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+  }
+
+  .product-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: #f5f3f0;
+  }
+  .product-img-primary,
+  .product-img-hover {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transition: opacity 0.45s ease;
+  }
+  .product-img-hover { opacity: 0; }
+  .product-card:hover .product-img-primary { opacity: 0; }
+  .product-card:hover .product-img-hover   { opacity: 1; }
+
+  .product-wish {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    transition: transform 0.2s;
+  }
+  .product-wish:hover { transform: scale(1.15); }
+
+  .product-info { padding: 0 2px; }
+  .product-cat-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .product-name  { font-size: 14px; font-weight: 400; margin-bottom: 5px; line-height: 1.4; }
+  .product-price { font-size: 13px; color: var(--muted); }
+
+  /* Empty state */
+  .wishlist-empty {
+    text-align: center;
+    padding: 100px 24px;
+  }
+  .wishlist-empty h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+  .wishlist-empty p { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+  .wishlist-empty a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 999px;
+    background: var(--text);
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: opacity 0.15s;
+  }
+  .wishlist-empty a:hover { opacity: 0.85; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 768px)  {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
+    .wishlist-body { padding: 32px 16px 60px; }
+    .wishlist-header { padding: 48px 24px 36px; }
+  }
+  @media (max-width: 480px)  { .product-grid { gap: 20px 10px; } }
+{% endblock %}
+
+{% block banner %}
+<section class="wishlist-header">
+  <div class="wishlist-header-inner">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:24px;">
+      <a href="/">Home</a>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Wishlist</span>
+    </nav>
+    <p class="wishlist-eyebrow">Lepaix — Saved Pieces</p>
+    <h1>My Wishlist</h1>
+    {% if products %}
+    <p class="wishlist-header-sub">{{ products | length }} saved {{ 'piece' if products | length == 1 else 'pieces' }}</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-body">
+  {% if products %}
+  <div class="wishlist-toolbar">
+    <span class="wishlist-count" id="wl-count">{{ products | length }} {{ 'item' if products | length == 1 else 'items' }}</span>
+    <button class="wishlist-clear" id="wl-clear-all">Clear all</button>
+  </div>
+
+  <div class="product-grid" id="wishlist-grid">
+    {% for p in products %}
+    <a class="product-card" href="/products/{{ p._id }}" id="wl-card-{{ p._id }}" data-product-id="{{ p._id }}">
+      <div class="product-image">
+        {% if p.get('images') %}
+        <img class="product-img-primary"
+             src="{{ url_for('static', filename='uploads/' + p.images[0]) }}"
+             alt="{{ p.name }}">
+        {% if p.images | length > 1 %}
+        <img class="product-img-hover"
+             src="{{ url_for('static', filename='uploads/' + p.images[1]) }}"
+             alt="{{ p.name }}">
+        {% endif %}
+        {% endif %}
+        <button class="product-wish wished" aria-label="Remove from wishlist"
+                onclick="removeFromWishlist(event, '{{ p._id }}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="product-info">
+        {% if p.get('category') %}
+        <div class="product-cat-label">{{ p.category }}</div>
+        {% endif %}
+        <div class="product-name">{{ p.name }}</div>
+        <div class="product-price">${{ '%.2f' | format(p.price) }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="wishlist-empty" id="wl-empty-state" style="display:none;">
+    <h2>Your wishlist is empty</h2>
+    <p>You've removed all saved pieces.</p>
+    <a href="/products">Explore the collection</a>
+  </div>
+
+  {% else %}
+  <div class="wishlist-empty">
+    <h2>Nothing saved yet</h2>
+    <p>Tap the heart on any product to save it here.</p>
+    <a href="/products">Explore the collection</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var _wlCount = {{ products | length }};
+
+  function removeFromWishlist(e, productId) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    fetch('/wishlist/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: productId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var card = document.getElementById('wl-card-' + productId);
+      if (card) {
+        card.classList.add('removing');
+        setTimeout(function() {
+          card.remove();
+          _wlCount--;
+          updateWishlistUI();
+        }, 300);
+      }
+      updateBadge(data.count);
+    });
+  }
+
+  function updateWishlistUI() {
+    var countEl = document.getElementById('wl-count');
+    if (countEl) countEl.textContent = _wlCount + (_wlCount === 1 ? ' item' : ' items');
+
+    if (_wlCount === 0) {
+      var grid = document.getElementById('wishlist-grid');
+      var toolbar = document.querySelector('.wishlist-toolbar');
+      var empty = document.getElementById('wl-empty-state');
+      if (grid)    grid.style.display    = 'none';
+      if (toolbar) toolbar.style.display = 'none';
+      if (empty)   empty.style.display   = '';
+    }
+  }
+
+  function updateBadge(count) {
+    var badge = document.querySelector('.header-icons a[href="/wishlist"] .badge');
+    if (!badge) return;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? '' : 'none';
+  }
+
+  var clearBtn = document.getElementById('wl-clear-all');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      var cards = document.querySelectorAll('#wishlist-grid .product-card');
+      var promises = [];
+      cards.forEach(function(card) {
+        var pid = card.dataset.productId;
+        if (pid) {
+          promises.push(
+            fetch('/wishlist/toggle', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ product_id: pid })
+            }).then(function(r) { return r.json(); })
+          );
+          card.classList.add('removing');
+        }
+      });
+      Promise.all(promises).then(function() {
+        _wlCount = 0;
+        setTimeout(function() {
+          updateWishlistUI();
+          updateBadge(0);
+        }, 300);
+      });
+    });
+  }
+</script>
+{% endblock %}

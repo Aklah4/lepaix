@@ -1,0 +1,32 @@
+{% extends "store_base.html" %}
+{% block title %}Order Confirmed — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .confirm-main { max-width: 620px; margin: 0 auto; padding: 80px 24px; text-align: center; }
+  .confirm-icon { width: 72px; height: 72px; border-radius: 50%; background: #dcfce7; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+  .confirm-main h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 500; margin-bottom: 12px; }
+  .confirm-main p { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 8px; }
+  .order-number-badge { display: inline-block; margin: 20px 0 32px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 28px; font-size: 18px; font-weight: 600; letter-spacing: .04em; }
+  .confirm-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { padding: 14px 28px; border-radius: 999px; background: var(--text); color: #fff; text-decoration: none; font-size: 14px; font-weight: 500; }
+  .btn-secondary { padding: 14px 28px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--text); text-decoration: none; font-size: 14px; }
+  .btn-primary:hover, .btn-secondary:hover { opacity: .85; }
+{% endblock %}
+
+{% block content %}
+<main class="confirm-main">
+  <div class="confirm-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h1>Order Confirmed!</h1>
+  <p>Thank you for your purchase. We've received your order and will start processing it shortly.</p>
+  <p>A confirmation email will be sent once your order ships.</p>
+
+  <div class="order-number-badge">{{ order_number }}</div>
+
+  <div class="confirm-actions">
+    <a href="{{ url_for('products.index') }}" class="btn-primary">Continue Shopping</a>
+    <a href="/" class="btn-secondary">Back to Home</a>
+  </div>
+</main>
+{% endblock %}

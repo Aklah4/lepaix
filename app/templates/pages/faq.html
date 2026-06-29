@@ -1,0 +1,86 @@
+{% extends "store_base.html" %}
+
+{% block title %}FAQ — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .faq-main { max-width: 800px; margin: 0 auto; padding: 64px 24px; }
+  .faq-intro { font-size: 15px; color: var(--muted); line-height: 1.75; margin-bottom: 48px; }
+  .faq-group { margin-bottom: 40px; }
+  .faq-group-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; margin-bottom: 16px; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-question {
+    width: 100%; background: none; border: none; padding: 18px 0;
+    font-size: 15px; font-family: inherit; color: var(--text);
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; text-align: left; gap: 16px;
+  }
+  .faq-question svg { flex-shrink: 0; transition: transform 0.2s; }
+  .faq-item.open .faq-question svg { transform: rotate(180deg); }
+  .faq-answer { font-size: 14px; color: var(--muted); line-height: 1.75; padding: 0 0 18px; display: none; }
+  .faq-item.open .faq-answer { display: block; }
+{% endblock %}
+
+{% block banner %}
+<section class="page-banner">
+  <div class="page-banner-content">
+    <h1>Help &amp; FAQs</h1>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>FAQ</span>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<main class="faq-main">
+  <p class="faq-intro">Can't find what you're looking for? <a href="/pages/contact" style="color:var(--text);text-decoration:underline;">Contact our team</a> — we're happy to help.</p>
+
+  {% set faqs = [
+    ('Orders & Shipping', [
+      ('How long does shipping take?', 'Standard shipping takes 3–5 business days within the US. Express options (1–2 days) are available at checkout. International orders typically arrive in 7–14 business days.'),
+      ('Can I track my order?', 'Yes. Once your order ships you will receive a confirmation email with a tracking link. You can also check order status in your account dashboard.'),
+      ('Do you ship internationally?', 'We ship to over 40 countries. Duties and taxes are calculated at checkout based on your destination country.'),
+    ]),
+    ('Returns & Exchanges', [
+      ('What is your return policy?', 'We accept returns within 30 days of delivery for unworn, unwashed items with original tags attached. Sale items are final sale.'),
+      ('How do I start a return?', 'Email hello@lepaix.com with your order number and reason for return. We will send you a prepaid label within 1 business day.'),
+      ('How long do refunds take?', 'Once we receive and inspect your return, refunds are processed within 3–5 business days to your original payment method.'),
+    ]),
+    ('Products & Sizing', [
+      ('How do I find my size?', 'Check our Size Guide for measurements. If you are between sizes, we generally recommend sizing up for a relaxed fit.'),
+      ('Are your materials sustainable?', 'We prioritise natural and recycled fabrics and work with suppliers who meet our environmental and labour standards. Product pages include full material breakdowns.'),
+      ('How should I care for my garments?', 'Care instructions are on each product label. Most items can be machine washed on a cold, gentle cycle. We recommend hanging to dry to extend the life of the garment.'),
+    ]),
+  ] %}
+
+  {% for group_name, items in faqs %}
+  <div class="faq-group">
+    <h2 class="faq-group-title">{{ group_name }}</h2>
+    {% for q, a in items %}
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        {{ q }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="faq-answer">{{ a }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const item = this.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+{% endblock %}

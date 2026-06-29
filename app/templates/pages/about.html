@@ -1,0 +1,126 @@
+{% extends "store_base.html" %}
+
+{% block title %}About Us — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .about-main { max-width: 1280px; margin: 0 auto; padding: 64px 24px; }
+
+  /* Hero */
+  .about-hero {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; margin-bottom: 80px;
+  }
+  .about-hero-img { width: 100%; aspect-ratio: 4/5; border-radius: 6px; background: #e0d4b0; }
+  .about-hero-text {}
+  .about-overline { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 16px; }
+  .about-hero-text h1 { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 500; line-height: 1.2; margin-bottom: 20px; }
+  .about-hero-text p { font-size: 16px; line-height: 1.8; color: var(--muted); margin-bottom: 16px; }
+
+  /* Values */
+  .values-section { margin-bottom: 80px; text-align: center; }
+  .values-section h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 500; margin-bottom: 12px; }
+  .values-section .sub { font-size: 15px; color: var(--muted); margin-bottom: 48px; }
+  .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .value-card { padding: 32px 24px; border: 1px solid var(--border); border-radius: 8px; text-align: left; }
+  .value-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .value-card h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+  .value-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+  /* Stats */
+  .stats-section { background: var(--bg); border-radius: 12px; padding: 48px; margin-bottom: 80px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 500; margin-bottom: 6px; }
+  .stat-label { font-size: 13px; color: var(--muted); }
+
+  /* CTA strip */
+  .about-cta { background: var(--text); color: #fff; border-radius: 12px; padding: 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .about-cta h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 500; }
+  .cta-btn { padding: 14px 28px; border-radius: 999px; background: #fff; color: var(--text); font-size: 14px; font-family: inherit; border: none; cursor: pointer; white-space: nowrap; font-weight: 500; }
+
+  @media (max-width: 900px) {
+    .about-hero { grid-template-columns: 1fr; gap: 32px; }
+    .values-grid { grid-template-columns: 1fr; }
+    .stats-section { grid-template-columns: repeat(2, 1fr); }
+    .about-cta { flex-direction: column; align-items: flex-start; }
+  }
+{% endblock %}
+
+{% block banner %}
+<section class="page-banner">
+  <div class="page-banner-content">
+    <h1>About Us</h1>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="/pages/about">Pages</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>About Us</span>
+    </nav>
+  </div>
+  <div class="page-banner-deco" aria-hidden="true">
+    <div class="deco-swatches">
+      <div class="deco-swatch" style="background:#e0d4b0;"></div>
+      <div class="deco-swatch" style="background:#c4843c;transform:translateY(-10px);"></div>
+      <div class="deco-swatch" style="background:#e8b8c0;transform:translateY(-5px);"></div>
+      <div class="deco-swatch" style="background:#b8c8d8;transform:translateY(-2px);"></div>
+      <div class="deco-swatch" style="background:#9098a8;"></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<main class="about-main">
+  <!-- Hero -->
+  <div class="about-hero">
+    <div class="about-hero-img"></div>
+    <div class="about-hero-text">
+      <div class="about-overline">Our Story</div>
+      <h1>Designed for the way you actually live</h1>
+      <p>Lepaix was founded on a simple conviction: that well-made clothing should feel as good as it looks. We create timeless, thoughtfully designed pieces that move with you through every part of your day.</p>
+      <p>From sourcing sustainable fabrics to obsessing over every seam, we hold every garment to the standard we would want for ourselves — nothing more, nothing less.</p>
+    </div>
+  </div>
+
+  <!-- Values -->
+  <div class="values-section">
+    <h2>What we stand for</h2>
+    <p class="sub">Three principles guide everything we make.</p>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3>Quality First</h3>
+        <p>Every fabric is selected for durability and feel. We work with suppliers who share our commitment to craftsmanship over convenience.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <h3>Thoughtful Design</h3>
+        <p>Timeless over trendy. We design pieces that work across seasons, occasions, and years — not just one editorial moment.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Responsibility</h3>
+        <p>We are committed to transparent supply chains and reducing our environmental footprint across every stage of production.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-section">
+    <div><div class="stat-num">2018</div><div class="stat-label">Founded</div></div>
+    <div><div class="stat-num">40+</div><div class="stat-label">Countries shipped</div></div>
+    <div><div class="stat-num">120K+</div><div class="stat-label">Happy customers</div></div>
+    <div><div class="stat-num">100%</div><div class="stat-label">Sustainable packaging</div></div>
+  </div>
+
+  <!-- CTA -->
+  <div class="about-cta">
+    <h2>Ready to find your next favourite piece?</h2>
+    <a href="/products" class="cta-btn">Shop the collection</a>
+  </div>
+</main>
+{% endblock %}

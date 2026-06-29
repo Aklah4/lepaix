@@ -1,0 +1,380 @@
+{% extends "store_base.html" %}
+
+{% block title %}The Collection — Lepaix{% endblock %}
+
+{% block head_styles %}
+  /* ── PAGE HEADER ── */
+  .products-header {
+    background: #f0ede8;
+    padding: 72px 32px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .products-header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .products-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .products-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .products-header-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+    margin-top: 6px;
+  }
+  .products-header-deco {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 50%;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* ── GENDER + FILTER BAR ── */
+  .filter-bar {
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    position: sticky;
+    top: 64px;
+    z-index: 50;
+  }
+  .filter-bar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .gender-tabs {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .gender-tab-link {
+    padding: 18px 20px;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    text-decoration: none;
+  }
+  .gender-tab-link:hover { color: var(--text); }
+  .gender-tab-link.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .filter-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; margin: 0 4px; }
+  .filter-pills-row {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex: 1;
+  }
+  .filter-pills-row::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 18px 16px;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .filter-pill:hover { color: var(--text); }
+  .filter-pill.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .filter-count-label {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0 16px 0 8px;
+  }
+
+  /* ── PRODUCT GRID ── */
+  .products-body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px 24px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .product-card {
+    display: block;
+    color: inherit;
+    animation: fadeUp 0.5s ease both;
+  }
+  .product-card:nth-child(1)  { animation-delay: 0.04s; }
+  .product-card:nth-child(2)  { animation-delay: 0.10s; }
+  .product-card:nth-child(3)  { animation-delay: 0.16s; }
+  .product-card:nth-child(4)  { animation-delay: 0.22s; }
+  .product-card:nth-child(5)  { animation-delay: 0.04s; }
+  .product-card:nth-child(6)  { animation-delay: 0.10s; }
+  .product-card:nth-child(7)  { animation-delay: 0.16s; }
+  .product-card:nth-child(8)  { animation-delay: 0.22s; }
+
+  .product-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: #f5f3f0;
+  }
+  .product-img-primary,
+  .product-img-hover {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transition: opacity 0.45s ease;
+  }
+  .product-img-hover { opacity: 0; }
+  @media (hover: hover) {
+    .product-card:hover .product-img-primary { opacity: 0; }
+    .product-card:hover .product-img-hover   { opacity: 1; }
+  }
+
+  .product-wish {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    color: var(--text);
+  }
+  @media (hover: hover) { .product-card:hover .product-wish { opacity: 1; } }
+  .product-wish.wished { opacity: 1 !important; color: var(--accent); }
+
+  .product-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--text);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  .product-info { padding: 0 2px; }
+  .product-cat-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .product-name {
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .product-price { font-size: 13px; color: var(--muted); }
+
+  /* Empty state when filter has no results */
+  .products-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--muted);
+  }
+  .products-empty h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .products-empty p { font-size: 14px; }
+  .no-results-msg { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 768px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
+    .products-body { padding: 32px 16px 60px; }
+    .filter-pill { padding: 16px 14px; font-size: 11px; }
+    .products-header { padding: 48px 24px 40px; }
+    .filter-bar { top: 64px; }
+  }
+  @media (max-width: 480px) {
+    .product-grid { gap: 20px 10px; }
+  }
+{% endblock %}
+
+{% block banner %}
+<section class="products-header">
+  <div class="products-header-inner">
+    <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:28px;">
+      <a href="/">Home</a>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>The Collection</span>
+    </nav>
+    <p class="products-eyebrow">Lepaix — 2026</p>
+    <h1>The Collection</h1>
+    <p class="products-header-sub">Curated pieces for the considered wardrobe</p>
+  </div>
+  <div class="products-header-deco" aria-hidden="true">
+    <div class="deco-swatches">
+      <div class="deco-swatch" style="background:#b89060;"></div>
+      <div class="deco-swatch" style="background:#c4843c; transform:translateY(-14px);"></div>
+      <div class="deco-swatch" style="background:#e8b8c0; transform:translateY(-6px);"></div>
+      <div class="deco-swatch" style="background:#9098a8; transform:translateY(-3px);"></div>
+      <div class="deco-swatch" style="background:#e0d4b0;"></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<!-- Filter bar: gender tabs + category pills -->
+<div class="filter-bar">
+  <div class="filter-bar-inner">
+    <div class="gender-tabs">
+      <a href="/products"
+         class="gender-tab-link {% if not active_gender %}active{% endif %}">All</a>
+      <a href="/products?gender=Women"
+         class="gender-tab-link {% if active_gender == 'Women' %}active{% endif %}">Women</a>
+      <a href="/products?gender=Men"
+         class="gender-tab-link {% if active_gender == 'Men' %}active{% endif %}">Men</a>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-pills-row" id="filter-pills">
+      {% for cat in categories %}
+      <button class="filter-pill {% if loop.first %}active{% endif %}"
+              data-filter="{{ cat }}" type="button">{{ cat }}</button>
+      {% endfor %}
+    </div>
+    <span class="filter-count-label" id="filter-count">{{ products | length }} pieces</span>
+  </div>
+</div>
+
+<!-- Product grid -->
+<div class="products-body">
+  <div class="product-grid" id="product-grid">
+    {% if products %}
+      {% for p in products %}
+      <a class="product-card" href="/products/{{ p._id }}" data-category="{{ p.get('category', '') }}">
+        <div class="product-image">
+          {% if p.get('images') %}
+          <img class="product-img-primary"
+               src="{{ url_for('static', filename='uploads/' + p.images[0]) }}"
+               alt="{{ p.name }}">
+          {% if p.images | length > 1 %}
+          <img class="product-img-hover"
+               src="{{ url_for('static', filename='uploads/' + p.images[1]) }}"
+               alt="{{ p.name }}">
+          {% endif %}
+          {% endif %}
+          {% if loop.index <= 3 %}
+          <span class="product-badge">New</span>
+          {% endif %}
+          <button class="product-wish {% if p._id in wishlist_ids %}wished{% endif %}"
+                  aria-label="Save to wishlist"
+                  onclick="toggleWishlist(event, this, '{{ p._id }}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="product-info">
+          {% if p.get('category') %}
+          <div class="product-cat-label">{{ p.category }}</div>
+          {% endif %}
+          <div class="product-name">{{ p.name }}</div>
+          <div class="product-price">${{ '%.2f' | format(p.price) }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    {% else %}
+      <div class="products-empty">
+        <h3>No products yet</h3>
+        <p>Check back soon — new pieces are on their way.</p>
+      </div>
+    {% endif %}
+    <div class="no-results-msg products-empty" id="no-results">
+      <h3>No results</h3>
+      <p>No products in this category yet.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var pills    = document.querySelectorAll('.filter-pill');
+    var countEl  = document.getElementById('filter-count');
+    var noRes    = document.getElementById('no-results');
+
+    pills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        pills.forEach(function (p) { p.classList.remove('active'); });
+        this.classList.add('active');
+
+        var filter = this.dataset.filter;
+        var cards  = document.querySelectorAll('#product-grid .product-card');
+        var visible = 0;
+
+        cards.forEach(function (card) {
+          var cat  = card.dataset.category || '';
+          var show = filter === 'All' || cat === filter;
+          card.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+
+        if (countEl) countEl.textContent = visible + (visible === 1 ? ' piece' : ' pieces');
+        if (noRes)   noRes.style.display = visible === 0 ? 'block' : 'none';
+      });
+    });
+  })();
+</script>
+{% endblock %}

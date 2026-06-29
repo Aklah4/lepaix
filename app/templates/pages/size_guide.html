@@ -1,0 +1,66 @@
+{% extends "store_base.html" %}
+
+{% block title %}Size Guide — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .size-main { max-width: 900px; margin: 0 auto; padding: 64px 24px; }
+  .size-main h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 500; margin: 36px 0 16px; }
+  .size-main p { font-size: 15px; color: var(--muted); line-height: 1.75; margin-bottom: 20px; }
+  .size-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+  .size-table th, .size-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .size-table th { font-weight: 500; background: var(--bg); }
+  .size-table tr:last-child td { border-bottom: none; }
+{% endblock %}
+
+{% block banner %}
+<section class="page-banner">
+  <div class="page-banner-content">
+    <h1>Size Guide</h1>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Size Guide</span>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<main class="size-main">
+  <p>Use this guide to find your perfect fit. If you're between sizes, we recommend sizing up for a relaxed fit or staying true to size for a tailored look.</p>
+
+  <h2>Tops &amp; Outerwear</h2>
+  <table class="size-table">
+    <thead>
+      <tr><th>Size</th><th>Chest (in)</th><th>Waist (in)</th><th>Hip (in)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>XS</td><td>32–34</td><td>24–26</td><td>34–36</td></tr>
+      <tr><td>S</td><td>34–36</td><td>26–28</td><td>36–38</td></tr>
+      <tr><td>M</td><td>36–38</td><td>28–30</td><td>38–40</td></tr>
+      <tr><td>L</td><td>38–40</td><td>30–32</td><td>40–42</td></tr>
+      <tr><td>XL</td><td>40–42</td><td>32–34</td><td>42–44</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Bottoms</h2>
+  <table class="size-table">
+    <thead>
+      <tr><th>Size</th><th>Waist (in)</th><th>Hip (in)</th><th>Inseam (in)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>XS</td><td>24–26</td><td>34–36</td><td>29</td></tr>
+      <tr><td>S</td><td>26–28</td><td>36–38</td><td>30</td></tr>
+      <tr><td>M</td><td>28–30</td><td>38–40</td><td>30</td></tr>
+      <tr><td>L</td><td>30–32</td><td>40–42</td><td>31</td></tr>
+      <tr><td>XL</td><td>32–34</td><td>42–44</td><td>31</td></tr>
+    </tbody>
+  </table>
+
+  <h2>How to measure</h2>
+  <p><strong>Chest:</strong> Measure around the fullest part of your chest, keeping the tape parallel to the floor.</p>
+  <p><strong>Waist:</strong> Measure around your natural waistline, about 1 inch above your belly button.</p>
+  <p><strong>Hip:</strong> Measure around the fullest part of your hips, about 8 inches below your waistline.</p>
+  <p>Still unsure? Email us at <a href="mailto:hello@lepaix.com" style="color:var(--text);text-decoration:underline;">hello@lepaix.com</a> and we'll be happy to help.</p>
+</main>
+{% endblock %}

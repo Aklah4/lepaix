@@ -1,0 +1,119 @@
+{% extends "store_base.html" %}
+
+{% block title %}{{ post.title }} — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .post-main { max-width: 1280px; margin: 0 auto; padding: 48px 24px 72px; display: grid; grid-template-columns: 1fr 320px; gap: 64px; align-items: start; }
+
+  /* Article */
+  .post-header { margin-bottom: 32px; }
+  .post-category { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; }
+  .post-title { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 500; line-height: 1.2; margin-bottom: 16px; }
+  .post-byline { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .post-byline-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+
+  .post-hero { width: 100%; aspect-ratio: 16/9; border-radius: 6px; margin-bottom: 40px; }
+
+  .post-body { font-size: 16px; line-height: 1.8; color: #2a2a28; }
+  .post-body p { margin-bottom: 20px; }
+  .post-body h2 { font-family: 'Playfair Display', serif; font-size: 24px; margin: 32px 0 14px; }
+  .post-body h3 { font-size: 18px; font-weight: 500; margin: 24px 0 10px; }
+  .post-body blockquote {
+    border-left: 3px solid var(--text); padding-left: 20px;
+    margin: 28px 0; font-size: 18px; color: var(--muted); font-style: italic;
+  }
+
+  /* Sidebar */
+  .post-sidebar {}
+  .sidebar-section { margin-bottom: 40px; }
+  .sidebar-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+  .recent-post { display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-start; }
+  .recent-thumb { width: 72px; height: 72px; border-radius: 4px; flex-shrink: 0; }
+  .recent-info {}
+  .recent-cat { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 4px; }
+  .recent-title { font-size: 14px; line-height: 1.4; color: var(--text); }
+  .recent-post:hover .recent-title { text-decoration: underline; }
+
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px;
+    font-size: 12px; color: var(--muted); transition: all 0.15s; display: inline-block;
+  }
+  .tag:hover { border-color: var(--text); color: var(--text); }
+
+  @media (max-width: 900px) {
+    .post-main { grid-template-columns: 1fr; gap: 40px; }
+    .post-title { font-size: 30px; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="post-main">
+  <article>
+    <header class="post-header">
+      <div class="post-category">{{ post.get('category', 'Editorial') }}</div>
+      <h1 class="post-title">{{ post.title }}</h1>
+      <div class="post-byline">
+        <span>By Lepaix Editorial</span>
+        <span class="post-byline-dot"></span>
+        <span>{{ post.get('date', '') }}</span>
+        <span class="post-byline-dot"></span>
+        <span>{{ post.get('read_time', '4 min read') }}</span>
+      </div>
+    </header>
+
+    {% if post.get('cover_image') %}
+    <img class="post-hero" src="{{ url_for('static', filename='uploads/' + post.cover_image) }}"
+         alt="{{ post.title }}" style="object-fit:cover;">
+    {% else %}
+    <div class="post-hero" style="background:{{ post.bg if post.bg else '#e0d4b0' }};"></div>
+    {% endif %}
+
+    <div class="post-body">
+      {% if post.get('body') %}
+        {{ post.body | safe }}
+      {% else %}
+        <p>Fashion is more than clothing — it is a conversation between the wearer and the world. At Lepaix, every piece begins with a question: how does this feel to wear, and what does it say without words?</p>
+        <h2>The Process</h2>
+        <p>Our design process starts months before a collection reaches you. Fabric sourcing, pattern development, and fit testing are all done in-house to ensure each garment meets our standard for both comfort and aesthetic.</p>
+        <blockquote>"Good design is honest. It does not make a product more innovative, powerful or valuable than it really is."</blockquote>
+        <p>We believe in slow fashion — not as a trend, but as a commitment. Our pieces are made to last multiple seasons, designed with versatility at their core so you can wear them in multiple ways across different occasions.</p>
+        <h2>Styling Tips</h2>
+        <p>The key to a cohesive wardrobe is building around a core palette of neutrals, then adding character with one or two accent pieces per outfit. Start with well-fitted basics and let the accessories and textures do the talking.</p>
+        <p>Layering is your best tool for transitional weather. A light knit over a crisp shirt, or a structured coat over a relaxed trousers — these combinations build dimension without effort.</p>
+      {% endif %}
+    </div>
+  </article>
+
+  <!-- Sidebar -->
+  <aside class="post-sidebar">
+    {% if recent %}
+    <div class="sidebar-section">
+      <div class="sidebar-title">Recent Posts</div>
+      {% for r in recent %}
+      <a class="recent-post" href="/blog/{{ r.slug }}">
+        {% if r.get('cover_image') %}
+        <img class="recent-thumb" src="{{ url_for('static', filename='uploads/' + r.cover_image) }}" alt="{{ r.title }}" style="object-fit:cover;">
+        {% else %}
+        <div class="recent-thumb" style="background:{{ r.bg if r.bg else '#e0d4b0' }};"></div>
+        {% endif %}
+        <div class="recent-info">
+          <div class="recent-cat">{{ r.get('category','Style') }}</div>
+          <div class="recent-title">{{ r.title }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Topics</div>
+      <div class="tag-cloud">
+        {% for tag in ['Style Guide','Fashion','Editorial','Sustainability','Trend Report','Outerwear','Knitwear','Minimalism'] %}
+        <a class="tag" href="#">{{ tag }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}

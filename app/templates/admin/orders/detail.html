@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_number }} — Lepaix Admin{% endblock %}
+
+{% block head %}
+<style>
+  :root {
+    --bg: #f7f4f0; --surface: #ffffff; --surface-alt: #f4f1ed;
+    --border: #e8e4df; --text: #1a1a18; --muted: #6b6b67;
+    --accent: #e8341a; --shadow: 0 18px 60px rgba(22,22,20,.08);
+  }
+  .admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 28px; min-height: calc(100vh - 100px); }
+  .admin-sidebar { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 28px 24px; display: flex; flex-direction: column; gap: 28px; }
+  .brand { font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: -.02em; }
+  .admin-nav { display: grid; gap: 12px; }
+  .admin-nav a { display: block; color: var(--text); padding: 14px 18px; border-radius: 14px; font-size: 14px; border: 1px solid transparent; text-decoration: none; }
+  .admin-nav a.active, .admin-nav a:hover { background: var(--bg); border-color: var(--border); }
+  .admin-content { background: transparent; }
+  .admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 18px; }
+  .eyebrow { text-transform: uppercase; font-size: 12px; letter-spacing: .14em; color: var(--muted); margin: 0 0 8px; }
+  .admin-header h1 { margin: 0; font-size: clamp(1.6rem,2.5vw,2.2rem); line-height: 1.1; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+  .text-link { font-size: 14px; color: var(--muted); text-decoration: none; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); text-decoration: none; margin-bottom: 20px; }
+  .back-link:hover { color: var(--text); }
+
+  /* Layout */
+  .detail-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 18px; }
+
+  /* Order items table */
+  .items-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .items-table th { text-align: left; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  .items-table td { padding: 14px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .items-table tr:last-child td { border-bottom: none; }
+  .product-thumb { width: 52px; height: 64px; border-radius: 8px; background: var(--bg); object-fit: cover; }
+  .product-thumb-placeholder { width: 52px; height: 64px; border-radius: 8px; background: var(--bg); display: inline-block; }
+
+  /* Customer info */
+  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--muted); }
+
+  /* Totals */
+  .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+  .totals-row.total { font-weight: 600; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 14px; font-size: 16px; }
+
+  /* Status badge */
+  .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; }
+  .badge-pending   { background: #fff8e6; color: #b45309; }
+  .badge-processing{ background: #e0f2fe; color: #0369a1; }
+  .badge-shipped   { background: #ede9fe; color: #6d28d9; }
+  .badge-delivered { background: #dcfce7; color: #15803d; }
+  .badge-cancelled { background: #fee2e2; color: #b91c1c; }
+
+  /* Status update form */
+  .status-form { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .status-select { padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; background: var(--bg); color: var(--text); width: 100%; appearance: none; cursor: pointer; }
+  .btn-update { padding: 13px; border-radius: 12px; background: var(--text); color: #fff; border: none; font-size: 14px; font-family: inherit; cursor: pointer; font-weight: 500; }
+  .btn-update:hover { opacity: .85; }
+
+  /* Flash */
+  .flash { padding: 14px 18px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; }
+  .flash-success { background: #dcfce7; color: #15803d; }
+  .flash-error   { background: #fee2e2; color: #b91c1c; }
+
+  @media (max-width: 1024px) {
+    .admin-shell { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}" class="active">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Orders</p>
+        <h1>{{ order.order_number }}</h1>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('admin_auth.reset_password') }}" class="text-link">Change password</a>
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link">Sign out</a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <a href="{{ url_for('admin_orders.index') }}" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to orders
+    </a>
+
+    <div class="detail-grid">
+      <!-- Left column -->
+      <div>
+        <!-- Order items -->
+        <div class="card">
+          <h2>Order Items</h2>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Product</th>
+                <th>Size / Color</th>
+                <th>Qty</th>
+                <th style="text-align:right">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order['items'] %}
+              <tr>
+                <td>
+                  {% if item.get('image') %}
+                  <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                       alt="{{ item.product_name }}" class="product-thumb">
+                  {% else %}
+                  <span class="product-thumb-placeholder"></span>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ item.product_name }}</strong>
+                </td>
+                <td style="color:var(--muted);font-size:13px">
+                  {{ item.get('size', '—') }}
+                  {% if item.get('color') %}
+                  / <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{{ item.color }};vertical-align:middle;border:1px solid #ccc"></span>
+                  {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td style="text-align:right">${{ '%.2f' | format(item.price * item.quantity) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Totals -->
+          <div style="margin-top:20px;max-width:280px;margin-left:auto">
+            <div class="totals-row">
+              <span style="color:var(--muted)">Subtotal</span>
+              <span>${{ '%.2f' | format(order.subtotal) }}</span>
+            </div>
+            <div class="totals-row">
+              <span style="color:var(--muted)">Shipping</span>
+              <span>${{ '%.2f' | format(order.get('shipping_cost', 0)) }}</span>
+            </div>
+            <div class="totals-row total">
+              <span>Total</span>
+              <span>${{ '%.2f' | format(order.total) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer info -->
+        <div class="card">
+          <h2>Customer Details</h2>
+          <div class="info-row"><span class="label">Name</span><span>{{ order.customer.name }}</span></div>
+          <div class="info-row"><span class="label">Email</span><span>{{ order.customer.email }}</span></div>
+          <div class="info-row"><span class="label">Phone</span><span>{{ order.customer.get('phone') or '—' }}</span></div>
+          <div class="info-row"><span class="label">Address</span><span>{{ order.customer.get('address') or '—' }}</span></div>
+          <div class="info-row"><span class="label">City</span><span>{{ order.customer.get('city') or '—' }}</span></div>
+          <div class="info-row"><span class="label">Country</span><span>{{ order.customer.get('country') or '—' }}</span></div>
+          {% if order.get('notes') %}
+          <div class="info-row"><span class="label">Notes</span><span>{{ order.notes }}</span></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div>
+        <!-- Status card -->
+        <div class="card">
+          <h2>Order Status</h2>
+          <span class="badge badge-{{ order.status }}">{{ order.status | capitalize }}</span>
+
+          <form class="status-form" method="post"
+                action="{{ url_for('admin_orders.update_status', order_id=order._id) }}">
+            <select name="status" class="status-select">
+              {% for s in ORDER_STATUSES %}
+              <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s | capitalize }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn-update">Update Status</button>
+          </form>
+        </div>
+
+        <!-- Order meta -->
+        <div class="card">
+          <h2>Order Info</h2>
+          <div class="info-row"><span class="label">Order #</span><span>{{ order.order_number }}</span></div>
+          <div class="info-row"><span class="label">Placed</span>
+            <span>{{ order.created_at.strftime('%b %d, %Y %H:%M') if order.created_at else '—' }}</span></div>
+          {% if order.get('updated_at') %}
+          <div class="info-row"><span class="label">Updated</span>
+            <span>{{ order.updated_at.strftime('%b %d, %Y %H:%M') }}</span></div>
+          {% endif %}
+          <div class="info-row"><span class="label">Items</span><span>{{ order['items'] | length }}</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

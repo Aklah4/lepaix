@@ -1,0 +1,279 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard - Lepaix{% endblock
+%} {% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}" class="active">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Admin Dashboard</p>
+        <h1>Welcome back, {{ admin_username }}</h1>
+      </div>
+      <div class="header-actions">
+        <span class="pill">Live</span>
+        <a href="{{ url_for('admin_auth.reset_password') }}" class="text-link"
+          >Change password</a
+        >
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link"
+          >Sign out</a
+        >
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Orders</span>
+        <strong>{{ total_orders }}</strong>
+        <p>{{ pending_orders }} pending</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Revenue</span>
+        <strong>${{ '%.2f' | format(total_revenue) }}</strong>
+        <p>All time (excl. cancelled)</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Products</span>
+        <strong>{{ total_products }}</strong>
+        <p>{{ published_products }} published, {{ draft_products }} draft</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Customers</span>
+        <strong>—</strong>
+        <p>No customer data yet</p>
+      </article>
+    </div>
+
+    <div class="panel-grid">
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Recent orders</h2>
+          <a href="{{ url_for('admin_orders.index') }}">View all</a>
+        </div>
+        <ul class="activity-list">
+          {% for o in recent_orders %}
+          <li>
+            <span><a href="{{ url_for('admin_orders.detail', order_id=o._id) }}" style="color:inherit;text-decoration:none">{{ o.order_number }}</a> — {{ o.customer.name }}</span>
+            <small>{{ o.status | capitalize }} · ${{ '%.2f' | format(o.total) }}</small>
+          </li>
+          {% else %}
+          <li>
+            <span style="color:var(--muted)">No orders yet</span>
+            <small></small>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Low stock alerts</h2>
+          <a href="{{ url_for('admin_products.index') }}">Update inventory</a>
+        </div>
+        <ul class="activity-list">
+          {% for p in low_stock %}
+          <li>
+            <span>{{ p.name }}</span>
+            <small>Stock: {{ p.stock }}</small>
+          </li>
+          {% else %}
+          <li>
+            <span style="color:var(--muted)">No low-stock items</span>
+            <small></small>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block head %}
+<style>
+  :root {
+    --bg: #f7f4f0;
+    --surface: #ffffff;
+    --surface-alt: #f4f1ed;
+    --border: #e8e4df;
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --accent: #e8341a;
+    --shadow: 0 18px 60px rgba(22, 22, 20, 0.08);
+  }
+  .admin-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
+    min-height: calc(100vh - 100px);
+  }
+  .admin-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .brand {
+    font-family:
+      Playfair Display,
+      serif;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+  }
+  .admin-nav {
+    display: grid;
+    gap: 12px;
+  }
+  .admin-nav a {
+    display: block;
+    color: var(--text);
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    border: 1px solid transparent;
+  }
+  .admin-nav a.active,
+  .admin-nav a:hover {
+    background: var(--bg);
+    border-color: var(--border);
+  }
+  .admin-content {
+    background: transparent;
+  }
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .admin-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 2.5vw, 2.8rem);
+    line-height: 1.05;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(232, 52, 26, 0.1);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .text-link {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .stat-card strong {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .stat-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 18px;
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .panel-heading h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .panel-heading a {
+    color: var(--accent);
+    font-size: 13px;
+  }
+  .activity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .activity-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--bg);
+    border: 1px solid rgba(232, 52, 26, 0.08);
+  }
+  .activity-list span {
+    font-weight: 500;
+  }
+  .activity-list small {
+    color: var(--muted);
+  }
+  @media (max-width: 1024px) {
+    .admin-shell {
+      grid-template-columns: 1fr;
+    }
+    .stats-grid,
+    .panel-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}

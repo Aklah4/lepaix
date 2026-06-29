@@ -1,0 +1,188 @@
+{%- extends "base.html" -%} {%- block title -%}Admin Login - Lepaix{%- endblock
+-%} {%- block content -%}
+<div class="login-viewport">
+  <main class="login-card" role="main" aria-labelledby="login-heading">
+    <h1 id="login-heading">Admin sign in</h1>
+
+    {% if error %}
+    <div class="flash error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form
+      id="loginForm"
+      method="post"
+      action="{{ url_for('admin_auth.login') }}"
+      novalidate
+    >
+      <label for="username" class="visually-hidden">Username</label>
+      <input
+        id="username"
+        name="username"
+        type="text"
+        placeholder="Username"
+        autocomplete="username"
+        required
+      />
+
+      <label for="password" class="visually-hidden">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      />
+
+      <div class="row">
+        <label class="remember">
+          <input type="checkbox" name="remember" value="1" /> Remember me
+        </label>
+        <button type="submit" class="btn-primary">Sign in</button>
+      </div>
+    </form>
+
+    <p class="muted">Forgot password? Contact the site administrator.</p>
+  </main>
+</div>
+
+<style>
+  :root {
+    --bg: #f7f4f0;
+    --surface: #fff;
+    --border: #e8e4df;
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --accent: #e8341a;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--bg);
+    font-family:
+      DM Sans,
+      system-ui,
+      sans-serif;
+    color: var(--text);
+    margin: 0;
+  }
+  .login-viewport {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .login-card {
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(20, 20, 20, 0.06);
+    width: 420px;
+    max-width: 95%;
+    padding: 28px;
+    border: 1px solid var(--border);
+  }
+  .login-card h1 {
+    font-family:
+      Playfair Display,
+      serif;
+    font-size: 22px;
+    margin: 0 0 18px;
+  }
+  .flash.error {
+    background: #ffe8e6;
+    color: #7a1210;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(232, 52, 26, 0.08);
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  input[type="text"],
+  input[type="password"] {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(232, 52, 26, 0.08);
+    border-color: var(--accent);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+  .remember {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .btn-primary {
+    background: var(--text);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    opacity: 0.95;
+  }
+  .muted {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 16px;
+  }
+  .visually-hidden {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+  }
+  @media (max-width: 480px) {
+    .login-card {
+      padding: 20px;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Client-side validation + accessibility
+  (() => {
+    const form = document.getElementById("loginForm");
+    form.addEventListener("submit", (e) => {
+      const u = form.username.value.trim();
+      const p = form.password.value;
+      if (!u || !p) {
+        e.preventDefault();
+        showError("Please provide both username and password.");
+      }
+    });
+
+    function showError(msg) {
+      let el = document.querySelector(".flash.error");
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "flash error";
+        el.setAttribute("role", "alert");
+        form.parentNode.insertBefore(el, form);
+      }
+      el.textContent = msg;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  })();
+</script>
+
+{%- endblock -%}

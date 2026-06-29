@@ -1,0 +1,307 @@
+{% extends "store_base.html" %}
+
+{% block title %}{{ product.name }} — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .detail-main { max-width: 1280px; margin: 0 auto; padding: 40px 24px 64px; }
+
+  /* Breadcrumb */
+  .detail-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--muted); margin-bottom: 36px;
+  }
+  .detail-breadcrumb a { color: var(--muted); }
+  .detail-breadcrumb a:hover { color: var(--text); }
+  .detail-breadcrumb span { color: var(--text); }
+
+  /* Layout */
+  .detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  /* Gallery */
+  .product-gallery {}
+  .gallery-main {
+    width: 100%; aspect-ratio: 2 / 3;
+    border-radius: 6px; overflow: hidden;
+    margin-bottom: 12px; background: #FAF8F5;
+  }
+  .gallery-main img {
+    width: 100%; height: 100%;
+    object-fit: contain; object-position: center;
+    display: block;
+  }
+  .gallery-main-img {
+    width: 100%; height: 100%;
+    background: #FAF8F5;
+  }
+  .gallery-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .gallery-thumb {
+    aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden;
+    cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
+    background: #FAF8F5;
+  }
+  .gallery-thumb:first-child { border-color: var(--text); }
+  .gallery-thumb img {
+    width: 100%; height: 100%;
+    object-fit: contain; object-position: center;
+    display: block;
+  }
+
+  /* Product info */
+  .product-info {}
+  .product-category { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .product-info h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 500; margin-bottom: 12px; line-height: 1.2;
+  }
+  .product-info-price { font-size: 22px; font-weight: 500; margin-bottom: 24px; }
+  .product-info-price .original { font-size: 15px; color: var(--muted); text-decoration: line-through; margin-left: 8px; }
+
+  .info-divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .product-description { font-size: 14px; color: var(--muted); line-height: 1.75; margin: 16px 0 0; }
+
+  /* Color selector */
+  .option-label { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+  .color-select { display: flex; gap: 8px; margin-bottom: 20px; }
+  .color-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer; transition: border-color 0.15s;
+  }
+  .color-dot.selected { border-color: var(--text); outline: 2px solid #fff; outline-offset: -4px; }
+
+  /* Size selector */
+  .size-select { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .size-btn {
+    padding: 8px 16px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; font-family: inherit;
+    background: #fff; cursor: pointer; transition: all 0.15s;
+  }
+  .size-btn.selected, .size-btn:hover { border-color: var(--text); background: var(--text); color: #fff; }
+
+  /* Actions */
+  .product-actions { display: flex; gap: 10px; margin-bottom: 24px; }
+  .qty-control {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
+    height: 48px;
+  }
+  .qty-btn {
+    width: 44px; height: 48px; background: #fff; border: none;
+    font-size: 20px; line-height: 1; cursor: pointer; font-family: inherit;
+    color: var(--text); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .qty-btn:hover { background: var(--bg); }
+  .qty-input {
+    width: 40px; height: 48px; text-align: center; border: none;
+    font-size: 14px; font-family: inherit; outline: none; color: var(--text);
+    line-height: 48px;
+  }
+  .add-to-cart {
+    flex: 1; padding: 14px 24px; border-radius: 999px;
+    background: var(--text); color: #fff; border: none;
+    font-size: 14px; font-family: inherit; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .add-to-cart:hover { opacity: 0.85; }
+  .wishlist-btn {
+    width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 50%;
+    background: #fff; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; color: var(--text); transition: all 0.15s;
+  }
+  .wishlist-btn:hover { border-color: var(--text); }
+  .wishlist-btn.wished { border-color: var(--accent); color: var(--accent); }
+
+  /* Meta */
+  .product-meta { font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .product-meta span { color: var(--text); }
+
+  /* Related */
+  .related-section { max-width: 1280px; margin: 0 auto; padding: 0 24px 64px; }
+  .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 20px; margin-top: 24px; }
+  .product-card { display: block; color: inherit; }
+  .product-card-img {
+    width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; margin-bottom: 10px;
+    overflow: hidden; background: #FAF8F5;
+  }
+  .product-card-img img {
+    width: 100%; height: 100%;
+    object-fit: contain; object-position: center;
+    display: block;
+  }
+  .product-card-name { font-size: 14px; margin-bottom: 4px; }
+  .product-card-price { font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 900px) {
+    .detail-layout { grid-template-columns: 1fr; gap: 32px; }
+    .related-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="detail-main">
+  <!-- Breadcrumb -->
+  <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <a href="/products">Products</a>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>{{ product.name }}</span>
+  </nav>
+
+  <div class="detail-layout">
+    <!-- Gallery -->
+    <div class="product-gallery">
+      <div class="gallery-main" id="gallery-main">
+        {% if product.get('images') %}
+        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}"
+             alt="{{ product.name }}" id="gallery-main-img"
+             style="width:100%;height:100%;object-fit:contain;object-position:center;" />
+        {% else %}
+        <div class="gallery-main-img"></div>
+        {% endif %}
+      </div>
+      {% if product.get('images') and product.images | length > 1 %}
+      <div class="gallery-thumbs">
+        {% for img in product.images %}
+        <div class="gallery-thumb {% if loop.first %}active-thumb{% endif %}"
+             data-src="{{ url_for('static', filename='uploads/' + img) }}">
+          <img src="{{ url_for('static', filename='uploads/' + img) }}"
+               alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;object-position:center;" />
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Info -->
+    <div class="product-info">
+      <div class="product-category">{{ product.get('category', 'Collection') }}</div>
+      <h1>{{ product.name }}</h1>
+      <div class="product-info-price">
+        ${{ '%.2f' | format(product.price) }}
+      </div>
+
+      {% if product.get('description') %}
+      <p class="product-description">{{ product.description }}</p>
+      {% endif %}
+
+      <div class="info-divider"></div>
+
+      <!-- Add-to-cart form -->
+      <form method="post" action="{{ url_for('cart.add') }}" id="atc-form">
+        <input type="hidden" name="product_id" value="{{ product._id }}">
+        <input type="hidden" name="size" id="selected-size" value="M">
+        <input type="hidden" name="color" id="selected-color" value="{{ product.colors[0] if product.get('colors') else '' }}">
+        <input type="hidden" name="quantity" id="qty-input" value="1">
+
+        <!-- Colors -->
+        {% if product.get('colors') %}
+        <div class="option-label">Color</div>
+        <div class="color-select">
+          {% for c in product.colors %}
+          <div class="color-dot {% if loop.first %}selected{% endif %}"
+               style="background:{{ c }};" title="{{ c }}"
+               data-color="{{ c }}" onclick="selectColor(this)"></div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Sizes -->
+        <div class="option-label">Size</div>
+        <div class="size-select">
+          {% set sizes = product.sizes if product.get('sizes') else ['XS','S','M','L','XL'] %}
+          {% for s in sizes %}
+          <button class="size-btn {% if loop.first %}selected{% endif %}"
+                  type="button" data-size="{{ s }}" onclick="selectSize(this)">{{ s }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- Actions -->
+        <div class="product-actions">
+          <div class="qty-control">
+            <button class="qty-btn" type="button" onclick="adjustQty(-1)">−</button>
+            <span class="qty-input" id="qty-display">1</span>
+            <button class="qty-btn" type="button" onclick="adjustQty(1)">+</button>
+          </div>
+          <button class="add-to-cart" type="submit">Add to cart</button>
+          <button class="wishlist-btn {% if product._id in wishlist_ids %}wished{% endif %}"
+                  type="button" aria-label="Add to wishlist"
+                  onclick="toggleWishlist(event, this, '{{ product._id }}')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <div class="info-divider"></div>
+
+      <div class="product-meta">
+        <div>Category: <span>{{ product.get('category', '—') }}</span></div>
+        <div>SKU: <span>LP-{{ product._id[:6].upper() }}</span></div>
+        <div>Availability: <span>In stock</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related products -->
+{% if related %}
+<section class="related-section">
+  <h2 class="section-title">You may also like</h2>
+  <div class="related-grid">
+    {% for p in related %}
+    <a class="product-card" href="/products/{{ p._id }}">
+      <div class="product-card-img">
+        {% if p.get('images') %}
+        <img src="{{ url_for('static', filename='uploads/' + p.images[0]) }}" alt="{{ p.name }}">
+        {% endif %}
+      </div>
+      <div class="product-card-name">{{ p.name }}</div>
+      <div class="product-card-price">${{ '%.2f' | format(p.price) }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let _qty = 1;
+
+  function adjustQty(delta) {
+    _qty = Math.max(1, _qty + delta);
+    document.getElementById('qty-display').textContent = _qty;
+    document.getElementById('qty-input').value = _qty;
+  }
+
+  function selectSize(btn) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('selected-size').value = btn.dataset.size;
+  }
+
+  function selectColor(dot) {
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+    document.getElementById('selected-color').value = dot.dataset.color;
+  }
+
+  // Set initial size from first size button
+  const firstSize = document.querySelector('.size-btn');
+  if (firstSize) document.getElementById('selected-size').value = firstSize.dataset.size;
+
+  document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      document.querySelectorAll('.gallery-thumb').forEach(t => t.style.borderColor = 'transparent');
+      this.style.borderColor = 'var(--text)';
+      const mainImg = document.getElementById('gallery-main-img');
+      if (mainImg && this.dataset.src) mainImg.src = this.dataset.src;
+    });
+  });
+</script>
+{% endblock %}

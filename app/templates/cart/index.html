@@ -1,0 +1,153 @@
+{% extends "store_base.html" %}
+{% block title %}Cart — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .cart-main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+
+  /* Flash */
+  .flash { padding: 12px 18px; border-radius: 10px; margin-bottom: 18px; font-size: 14px; }
+  .flash-success { background: #dcfce7; color: #15803d; }
+  .flash-error   { background: #fee2e2; color: #b91c1c; }
+
+  /* Items */
+  .cart-items-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .cart-items-head { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600; }
+  .cart-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border); align-items: center; }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-img { width: 80px; height: 100px; border-radius: 8px; object-fit: cover; background: var(--bg); }
+  .cart-item-img-placeholder { width: 80px; height: 100px; border-radius: 8px; background: var(--bg); }
+  .cart-item-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .cart-item-meta { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .cart-item-qty { display: flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; width: fit-content; }
+  .qty-btn { width: 34px; height: 36px; background: #fff; border: none; font-size: 16px; cursor: pointer; color: var(--text); font-family: inherit; }
+  .qty-val { width: 34px; text-align: center; font-size: 14px; border: none; outline: none; background: transparent; }
+  .cart-item-price { text-align: right; }
+  .cart-item-price strong { display: block; font-size: 16px; margin-bottom: 8px; }
+  .remove-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; padding: 0; }
+  .remove-btn:hover { color: var(--accent); }
+
+  /* Summary */
+  .cart-summary { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: 84px; }
+  .cart-summary h2 { font-size: 15px; font-weight: 600; margin-bottom: 20px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; }
+  .summary-row .label { color: var(--muted); }
+  .summary-divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .summary-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 600; }
+  .checkout-btn { display: block; width: 100%; padding: 16px; border-radius: 999px; background: var(--text); color: #fff; border: none; font-size: 15px; font-family: inherit; cursor: pointer; margin-top: 20px; text-align: center; text-decoration: none; font-weight: 500; }
+  .checkout-btn:hover { opacity: .85; }
+  .continue-link { display: block; text-align: center; margin-top: 14px; font-size: 13px; color: var(--muted); text-decoration: none; }
+  .continue-link:hover { color: var(--text); }
+
+  /* Empty state */
+  .empty-cart { text-align: center; padding: 80px 24px; color: var(--muted); }
+  .empty-cart svg { margin-bottom: 16px; }
+  .empty-cart h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .empty-cart p { font-size: 15px; margin-bottom: 24px; }
+  .shop-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 999px; background: var(--text); color: #fff; text-decoration: none; font-size: 14px; }
+
+  @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } }
+{% endblock %}
+
+{% block banner %}
+<section class="page-banner">
+  <div class="page-banner-content">
+    <h1>Your Cart</h1>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Cart</span>
+    </nav>
+  </div>
+  <div class="page-banner-deco" aria-hidden="true">
+    <div class="deco-swatches">
+      <div class="deco-swatch" style="background:#e0d4b0;"></div>
+      <div class="deco-swatch" style="background:#c4843c;transform:translateY(-10px);"></div>
+      <div class="deco-swatch" style="background:#e8b8c0;transform:translateY(-5px);"></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<main class="cart-main">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if cart %}
+  <div class="cart-layout">
+    <!-- Items -->
+    <div>
+      <div class="cart-items-card">
+        <div class="cart-items-head">{{ cart | length }} item{% if cart | length != 1 %}s{% endif %} in your cart</div>
+        {% for item in cart %}
+        <div class="cart-item">
+          <!-- Image -->
+          {% if item.image %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+               alt="{{ item.name }}" class="cart-item-img">
+          {% else %}
+          <div class="cart-item-img-placeholder"></div>
+          {% endif %}
+
+          <!-- Details -->
+          <div>
+            <div class="cart-item-name">{{ item.name }}</div>
+            <div class="cart-item-meta">
+              {% if item.size %}Size: {{ item.size }}{% endif %}
+              {% if item.size and item.color %} · {% endif %}
+              {% if item.color %}<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ item.color }};vertical-align:middle;border:1px solid #ccc;margin-right:3px"></span>{% endif %}
+            </div>
+            <!-- Qty update form -->
+            <form method="post" action="{{ url_for('cart.update') }}" style="display:inline">
+              <input type="hidden" name="product_id" value="{{ item.product_id }}">
+              <input type="hidden" name="size" value="{{ item.size }}">
+              <input type="hidden" name="color" value="{{ item.color }}">
+              <div class="cart-item-qty">
+                <button class="qty-btn" type="submit" name="quantity" value="{{ [item.quantity - 1, 0] | max }}">−</button>
+                <span class="qty-val">{{ item.quantity }}</span>
+                <button class="qty-btn" type="submit" name="quantity" value="{{ item.quantity + 1 }}">+</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Price + remove -->
+          <div class="cart-item-price">
+            <strong>${{ '%.2f' | format(item.subtotal) }}</strong>
+            <form method="post" action="{{ url_for('cart.remove') }}">
+              <input type="hidden" name="product_id" value="{{ item.product_id }}">
+              <input type="hidden" name="size" value="{{ item.size }}">
+              <input type="hidden" name="color" value="{{ item.color }}">
+              <button class="remove-btn" type="submit">Remove</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="cart-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-row"><span class="label">Subtotal</span><span>${{ '%.2f' | format(cart_total) }}</span></div>
+      <div class="summary-row"><span class="label">Shipping</span><span>Free</span></div>
+      <div class="summary-divider"></div>
+      <div class="summary-total"><span>Total</span><span>${{ '%.2f' | format(cart_total) }}</span></div>
+      <a href="{{ url_for('checkout.index') }}" class="checkout-btn">Proceed to Checkout</a>
+      <a href="{{ url_for('products.index') }}" class="continue-link">Continue shopping</a>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't added anything yet.</p>
+    <a href="{{ url_for('products.index') }}" class="shop-btn">Browse Products</a>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}
