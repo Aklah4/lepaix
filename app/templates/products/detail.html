@@ -158,7 +158,7 @@
     <div class="product-gallery">
       <div class="gallery-main" id="gallery-main">
         {% if product.get('images') %}
-        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}"
+        <img src="{{ product.images[0] | image_url }}"
              alt="{{ product.name }}" id="gallery-main-img"
              style="width:100%;height:100%;object-fit:contain;object-position:center;" />
         {% else %}
@@ -169,8 +169,8 @@
       <div class="gallery-thumbs">
         {% for img in product.images %}
         <div class="gallery-thumb {% if loop.first %}active-thumb{% endif %}"
-             data-src="{{ url_for('static', filename='uploads/' + img) }}">
-          <img src="{{ url_for('static', filename='uploads/' + img) }}"
+             data-src="{{ img | image_url }}">
+          <img src="{{ img | image_url }}"
                alt="{{ product.name }}" style="width:100%;height:100%;object-fit:contain;object-position:center;" />
         </div>
         {% endfor %}
@@ -257,7 +257,7 @@
     <a class="product-card" href="/products/{{ p._id }}">
       <div class="product-card-img">
         {% if p.get('images') %}
-        <img src="{{ url_for('static', filename='uploads/' + p.images[0]) }}" alt="{{ p.name }}">
+        <img src="{{ p.images[0] | image_url }}" alt="{{ p.name }}">
         {% endif %}
       </div>
       <div class="product-card-name">{{ p.name }}</div>

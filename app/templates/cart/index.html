@@ -87,7 +87,7 @@
         <div class="cart-item">
           <!-- Image -->
           {% if item.image %}
-          <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+          <img src="{{ item.image | image_url }}"
                alt="{{ item.name }}" class="cart-item-img">
           {% else %}
           <div class="cart-item-img-placeholder"></div>

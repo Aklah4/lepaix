@@ -1,5 +1,6 @@
 import os
-from flask import Flask
+import cloudinary
+from flask import Flask, url_for
 from .db import init_db
 
 
@@ -10,8 +11,24 @@ def create_app():
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    # Configure Cloudinary
+    cloudinary.config(
+        cloud_name=app.config['CLOUDINARY_CLOUD_NAME'],
+        api_key=app.config['CLOUDINARY_API_KEY'],
+        api_secret=app.config['CLOUDINARY_API_SECRET'],
+        secure=True,
+    )
+
     # Initialize database connection
     init_db(app)
+
+    @app.template_filter('image_url')
+    def image_url_filter(path):
+        if not path:
+            return ''
+        if path.startswith('http'):
+            return path
+        return url_for('static', filename=f'uploads/{path}')
 
     # Register blueprints
     from app.blueprints.admin.auth import admin_auth_bp, admin_bp

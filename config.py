@@ -16,6 +16,10 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "app", "static", "uploads")
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
+    CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
+    CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY", "")
+    CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET", "")
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

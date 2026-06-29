@@ -43,7 +43,7 @@
       <div class="current-images">
         {% for img in product.images %}
         <div class="current-thumb">
-          <img src="{{ url_for('static', filename='uploads/' + img) }}" alt="{{ img }}" />
+          <img src="{{ img | image_url }}" alt="{{ img }}" />
           <form method="post"
                 action="{{ url_for('admin_products.delete_image', product_id=product._id, filename=img) }}"
                 onsubmit="return confirm('Remove this image?');">

@@ -1,6 +1,5 @@
-import os
-import uuid
-from flask import Blueprint, render_template, redirect, request, url_for, flash, session, current_app
+from flask import Blueprint, render_template, redirect, request, url_for, flash, session
+from app.uploader import delete_image, upload_image
 
 admin_settings_bp = Blueprint('admin_settings', __name__, url_prefix='/admin/settings')
 
@@ -27,11 +26,7 @@ def index():
 
         if action == 'remove_banner':
             old = settings.get('banner_image')
-            if old:
-                try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], old))
-                except OSError:
-                    pass
+            delete_image(old)
             db.settings.update_one(
                 {'_id': 'site'},
                 {'$unset': {'banner_image': ''}},
@@ -42,21 +37,11 @@ def index():
 
         file = request.files.get('banner_image')
         if file and file.filename and _allowed(file.filename):
-            ext = file.filename.rsplit('.', 1)[1].lower()
-            filename = f'banner_{uuid.uuid4().hex}.{ext}'
-            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-
-            # Delete the old banner image if present
-            old = settings.get('banner_image')
-            if old:
-                try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], old))
-                except OSError:
-                    pass
-
+            delete_image(settings.get('banner_image'))
+            url = upload_image(file, folder='lepaix/settings')
             db.settings.update_one(
                 {'_id': 'site'},
-                {'$set': {'banner_image': filename}},
+                {'$set': {'banner_image': url}},
                 upsert=True,
             )
             flash('Banner image updated.', 'success')

@@ -127,7 +127,7 @@
           <tr>
             <td>
               {% if p.get('cover_image') %}
-              <img src="{{ url_for('static', filename='uploads/' + p.cover_image) }}"
+              <img src="{{ p.cover_image | image_url }}"
                    alt="" class="thumb">
               {% else %}
               <span class="thumb-placeholder" style="background:{{ p.get('bg','#e0d4b0') }};"></span>

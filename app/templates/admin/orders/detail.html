@@ -131,7 +131,7 @@
               <tr>
                 <td>
                   {% if item.get('image') %}
-                  <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                  <img src="{{ item.image | image_url }}"
                        alt="{{ item.product_name }}" class="product-thumb">
                   {% else %}
                   <span class="product-thumb-placeholder"></span>

@@ -1,5 +1,3 @@
-import os
-import uuid
 from datetime import datetime, timezone
 
 from bson import ObjectId
@@ -7,12 +5,12 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
 from app.db import get_db
+from app.uploader import delete_image, upload_image
 
 admin_products_bp = Blueprint('admin_products', __name__, url_prefix='/admin/products')
 
 
 def _auth_required():
-    """Return a redirect if the admin is not logged in, else None."""
     if not session.get('admin_id'):
         return redirect(url_for('admin_auth.login'))
     return None
@@ -21,15 +19,6 @@ def _auth_required():
 def _allowed(filename):
     return ('.' in filename and
             filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS'])
-
-
-def _save_image(file):
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    folder = current_app.config['UPLOAD_FOLDER']
-    os.makedirs(folder, exist_ok=True)
-    file.save(os.path.join(folder, filename))
-    return filename
 
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -108,7 +97,7 @@ def add():
         images = []
         for file in request.files.getlist('images'):
             if file and file.filename and _allowed(file.filename):
-                images.append(_save_image(file))
+                images.append(upload_image(file, folder='lepaix/products'))
 
         doc = {
             'name':        name,
@@ -185,7 +174,7 @@ def edit(product_id):
         existing_images = product.get('images', [])
         for file in request.files.getlist('images'):
             if file and file.filename and _allowed(file.filename):
-                existing_images.append(_save_image(file))
+                existing_images.append(upload_image(file, folder='lepaix/products'))
 
         try:
             db.products.update_one({'_id': oid}, {'$set': {
@@ -228,11 +217,8 @@ def delete(product_id):
 
     product = db.products.find_one({'_id': oid})
     if product:
-        folder = current_app.config['UPLOAD_FOLDER']
         for img in product.get('images', []):
-            path = os.path.join(folder, img)
-            if os.path.exists(path):
-                os.remove(path)
+            delete_image(img)
         db.products.delete_one({'_id': oid})
         flash(f'Product "{product.get("name","")}" deleted.', 'success')
 
@@ -253,8 +239,6 @@ def delete_image(product_id, filename):
         return redirect(url_for('admin_products.index'))
 
     db.products.update_one({'_id': oid}, {'$pull': {'images': filename}})
-    path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-    if os.path.exists(path):
-        os.remove(path)
+    delete_image(filename)
 
     return redirect(url_for('admin_products.edit', product_id=product_id))

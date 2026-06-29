@@ -173,7 +173,7 @@
 
             {% if post.get('cover_image') %}
             <div class="current-cover" id="current-cover-wrap">
-              <img src="{{ url_for('static', filename='uploads/' + post.cover_image) }}" alt="Current cover">
+              <img src="{{ post.cover_image | image_url }}" alt="Current cover">
             </div>
             <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Upload a new image below to replace the current one.</p>
             {% endif %}

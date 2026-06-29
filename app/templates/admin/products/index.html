@@ -73,7 +73,7 @@
                 <div class="product-thumb"
                      style="background:{{ p.bg if p.bg else '#f0ede8' }};">
                   {% if p.images %}
-                  <img src="{{ url_for('static', filename='uploads/' + p.images[0]) }}"
+                  <img src="{{ p.images[0] | image_url }}"
                        alt="{{ p.name }}" />
                   {% endif %}
                 </div>

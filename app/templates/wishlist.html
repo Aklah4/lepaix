@@ -205,11 +205,11 @@
       <div class="product-image">
         {% if p.get('images') %}
         <img class="product-img-primary"
-             src="{{ url_for('static', filename='uploads/' + p.images[0]) }}"
+             src="{{ p.images[0] | image_url }}"
              alt="{{ p.name }}">
         {% if p.images | length > 1 %}
         <img class="product-img-hover"
-             src="{{ url_for('static', filename='uploads/' + p.images[1]) }}"
+             src="{{ p.images[1] | image_url }}"
              alt="{{ p.name }}">
         {% endif %}
         {% endif %}

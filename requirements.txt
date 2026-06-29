@@ -1,4 +1,6 @@
 ﻿Flask
 pymongo[srv]
 bcrypt
+python-dotenv
+cloudinary
 

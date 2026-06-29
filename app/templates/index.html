@@ -1029,7 +1029,7 @@
       <div class="hero-bg">
         {% if banner_image %}
         <img
-          src="{{ url_for('static', filename='uploads/' + banner_image) }}"
+          src="{{ banner_image | image_url }}"
           alt=""
         />
         {% endif %}
@@ -1085,9 +1085,9 @@
           <a class="product-card" href="/products/{{ p._id }}" data-category="{{ p.get('category', '')|lower }}">
             <div class="card-image" style="background:{{ p.bg }};">
               {% if p.get('images') %}
-              <img class="card-img-primary" src="{{ url_for('static', filename='uploads/' + p.images[0]) }}" alt="{{ p.name }}" />
+              <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
               {% if p.images | length > 1 %}
-              <img class="card-img-hover"   src="{{ url_for('static', filename='uploads/' + p.images[1]) }}" alt="{{ p.name }}" />
+              <img class="card-img-hover"   src="{{ p.images[1] | image_url }}" alt="{{ p.name }}" />
               {% endif %}
               {% endif %}
               <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">
@@ -1123,9 +1123,9 @@
           <a class="product-card" href="/products/{{ p._id }}" data-category="{{ p.get('category', '')|lower }}">
             <div class="card-image" style="background:{{ p.bg }};">
               {% if p.get('images') %}
-              <img class="card-img-primary" src="{{ url_for('static', filename='uploads/' + p.images[0]) }}" alt="{{ p.name }}" />
+              <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
               {% if p.images | length > 1 %}
-              <img class="card-img-hover"   src="{{ url_for('static', filename='uploads/' + p.images[1]) }}" alt="{{ p.name }}" />
+              <img class="card-img-hover"   src="{{ p.images[1] | image_url }}" alt="{{ p.name }}" />
               {% endif %}
               {% endif %}
               <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">

@@ -1,10 +1,10 @@
-import os
 import re
-import uuid
 from datetime import datetime, timezone
 from bson import ObjectId
 from flask import (Blueprint, render_template, redirect, request,
-                   url_for, flash, session, current_app)
+                   url_for, flash, session)
+from app.uploader import delete_image, upload_image
+
 admin_blog_bp = Blueprint('admin_blog', __name__, url_prefix='/admin/blog')
 
 
@@ -112,9 +112,7 @@ def add():
     cover_image = None
     file = request.files.get('cover_image')
     if file and file.filename and _allowed(file.filename):
-        ext = file.filename.rsplit('.', 1)[1].lower()
-        cover_image = f'blog_{uuid.uuid4().hex}.{ext}'
-        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], cover_image))
+        cover_image = upload_image(file, folder='lepaix/blog')
 
     now = datetime.now(timezone.utc)
     doc = {
@@ -126,7 +124,7 @@ def add():
         'read_time': read_time or '3 min read',
         'cover_image': cover_image,
         'status': status if status in ('draft', 'published') else 'draft',
-        'date': now.strftime('%-d %b %Y') if os.name != 'nt' else now.strftime('%d %b %Y').lstrip('0'),
+        'date': now.strftime('%d %b %Y').lstrip('0'),
         'created_at': now,
         'updated_at': now,
     }
@@ -181,15 +179,8 @@ def edit(post_id):
     cover_image = post.get('cover_image')
     file = request.files.get('cover_image')
     if file and file.filename and _allowed(file.filename):
-        # delete old
-        if cover_image:
-            try:
-                os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], cover_image))
-            except OSError:
-                pass
-        ext = file.filename.rsplit('.', 1)[1].lower()
-        cover_image = f'blog_{uuid.uuid4().hex}.{ext}'
-        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], cover_image))
+        delete_image(cover_image)
+        cover_image = upload_image(file, folder='lepaix/blog')
 
     updates = {
         'title': title,
@@ -228,11 +219,8 @@ def delete(post_id):
         return redirect(url_for('admin_blog.index'))
 
     post = db.posts.find_one({'_id': oid}, {'cover_image': 1})
-    if post and post.get('cover_image'):
-        try:
-            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], post['cover_image']))
-        except OSError:
-            pass
+    if post:
+        delete_image(post.get('cover_image'))
 
     db.posts.delete_one({'_id': oid})
     flash('Post deleted.', 'success')
