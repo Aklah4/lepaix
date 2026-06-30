@@ -1086,9 +1086,7 @@
             <div class="card-image" style="background:{{ p.bg }};">
               {% if p.get('images') %}
               <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
-              {% if p.images | length > 1 %}
-              <img class="card-img-hover"   src="{{ p.images[1] | image_url }}" alt="{{ p.name }}" />
-              {% endif %}
+              <img class="card-img-hover"   src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}" alt="{{ p.name }}" />
               {% endif %}
               <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/></svg>
@@ -1124,9 +1122,7 @@
             <div class="card-image" style="background:{{ p.bg }};">
               {% if p.get('images') %}
               <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
-              {% if p.images | length > 1 %}
-              <img class="card-img-hover"   src="{{ p.images[1] | image_url }}" alt="{{ p.name }}" />
-              {% endif %}
+              <img class="card-img-hover"   src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}" alt="{{ p.name }}" />
               {% endif %}
               <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/></svg>
