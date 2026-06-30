@@ -1,0 +1,100 @@
+{% extends "store_base.html" %}
+
+{% block title %}{% if q %}{{ q }} — Search{% else %}Search{% endif %} — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .search-page { max-width: 1280px; margin: 0 auto; padding: 56px 24px 80px; }
+  .search-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .search-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 48px;
+  }
+  .search-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px 24px;
+  }
+  .search-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .search-card-img {
+    aspect-ratio: 3/4;
+    background: #f0ede8;
+    overflow: hidden;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .search-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .search-card:hover .search-card-img img { transform: scale(1.04); }
+  .search-card-name {
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .search-card-price {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .search-empty {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--muted);
+  }
+  .search-empty p { font-size: 15px; margin-bottom: 24px; }
+  .search-empty a {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  @media (max-width: 900px) { .search-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) { .search-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; } }
+{% endblock %}
+
+{% block content %}
+<div class="search-page">
+  {% if q %}
+    <h1 class="search-heading">Results for "{{ q }}"</h1>
+    <p class="search-meta">{{ products | length }} item{% if products | length != 1 %}s{% endif %} found</p>
+  {% else %}
+    <h1 class="search-heading">Search</h1>
+    <p class="search-meta">Enter a keyword above to find products.</p>
+  {% endif %}
+
+  {% if products %}
+    <div class="search-grid">
+      {% for p in products %}
+      <a class="search-card" href="/products/{{ p._id }}">
+        <div class="search-card-img" style="background:{{ p.bg }};">
+          {% if p.get('images') %}
+          <img src="{{ p.images[0] | image_url }}" alt="{{ p.name }}">
+          {% endif %}
+        </div>
+        <div class="search-card-name">{{ p.name }}</div>
+        <div class="search-card-price">${{ '%.2f' | format(p.price) }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  {% elif q %}
+    <div class="search-empty">
+      <p>No products found for "{{ q }}".</p>
+      <a href="/products">Browse all products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

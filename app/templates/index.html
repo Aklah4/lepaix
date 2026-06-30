@@ -838,6 +838,66 @@
         color: rgba(255, 255, 255, 0.3);
       }
 
+      /* ── SEARCH OVERLAY ── */
+      .search-overlay {
+        display: none;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-bottom: 1px solid #e8e4df;
+        padding: 18px 24px;
+        z-index: 99;
+        align-items: center;
+        gap: 12px;
+      }
+      .search-overlay.open { display: flex; }
+      .search-overlay form {
+        display: flex;
+        flex: 1;
+        max-width: 640px;
+        margin: 0 auto;
+        border: 1px solid #e8e4df;
+      }
+      .search-overlay input[type="text"] {
+        flex: 1;
+        border: none;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+      }
+      .search-overlay button[type="submit"] {
+        padding: 11px 20px;
+        background: #1a1a18;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+      }
+      .search-close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: #6b6b67;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      #search-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        color: inherit;
+      }
+
       /* ── RESPONSIVE ── */
       @media (max-width: 1060px) {
         .product-grid {
@@ -862,7 +922,7 @@
         .hamburger {
           display: flex;
         }
-        .header-icons a[aria-label="Search"],
+        .header-icons button[aria-label="Search"],
         .header-icons a[aria-label="Wishlist"] {
           display: none;
         }
@@ -934,19 +994,12 @@
         </nav>
         <div class="header-right">
           <div class="header-icons">
-            <a href="/search" aria-label="Search">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+            <button id="search-btn" aria-label="Search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="11" cy="11" r="7" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" />
               </svg>
-            </a>
+            </button>
             <a href="/wishlist" aria-label="Wishlist">
               <svg
                 width="18"
@@ -989,6 +1042,17 @@
         </div>
       </div>
     </header>
+
+    <!-- Search overlay -->
+    <div class="search-overlay" id="search-overlay" role="search">
+      <form action="/search" method="get">
+        <input type="text" name="q" id="search-input" placeholder="Search products…" autocomplete="off">
+        <button type="submit">Search</button>
+      </form>
+      <button class="search-close-btn" id="search-close" aria-label="Close search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
 
     <!-- Mobile drawer -->
     <div class="mobile-nav" id="mobile-nav" aria-hidden="true">
@@ -1293,6 +1357,19 @@
         });
 
         updateCount(womenGrid);
+      })();
+    </script>
+    <script>
+      (function () {
+        var searchBtn     = document.getElementById('search-btn');
+        var searchOverlay = document.getElementById('search-overlay');
+        var searchClose   = document.getElementById('search-close');
+        var searchInput   = document.getElementById('search-input');
+        function openSearch() { searchOverlay.classList.add('open'); searchInput.focus(); }
+        function closeSearch() { searchOverlay.classList.remove('open'); }
+        searchBtn.addEventListener('click', openSearch);
+        searchClose.addEventListener('click', closeSearch);
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSearch(); });
       })();
     </script>
   </body>

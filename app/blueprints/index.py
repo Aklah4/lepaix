@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from app.db import get_db
 
 index_bp = Blueprint('index', __name__)
@@ -16,6 +16,24 @@ def _prep(products, offset=0):
         if not p.get('bg'):
             p['bg'] = _PLACEHOLDER_COLORS[(i + offset) % len(_PLACEHOLDER_COLORS)]
     return products
+
+
+@index_bp.route('/search')
+def search():
+    db = get_db()
+    q  = request.args.get('q', '').strip()
+    products = []
+    if q:
+        raw = list(db.products.find({
+            'status': 'published',
+            '$or': [
+                {'name':        {'$regex': q, '$options': 'i'}},
+                {'category':    {'$regex': q, '$options': 'i'}},
+                {'description': {'$regex': q, '$options': 'i'}},
+            ]
+        }).sort('created_at', -1))
+        products = _prep(raw)
+    return render_template('search.html', products=products, q=q)
 
 
 @index_bp.route('/')
