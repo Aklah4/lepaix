@@ -5,7 +5,7 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
 from app.db import get_db
-from app.uploader import delete_image, upload_image
+from app.uploader import delete_image as _delete_image, upload_image
 
 admin_products_bp = Blueprint('admin_products', __name__, url_prefix='/admin/products')
 
@@ -218,7 +218,7 @@ def delete(product_id):
     product = db.products.find_one({'_id': oid})
     if product:
         for img in product.get('images', []):
-            delete_image(img)
+            _delete_image(img)
         db.products.delete_one({'_id': oid})
         flash(f'Product "{product.get("name","")}" deleted.', 'success')
 
@@ -239,6 +239,6 @@ def delete_image(product_id, filename):
         return redirect(url_for('admin_products.index'))
 
     db.products.update_one({'_id': oid}, {'$pull': {'images': filename}})
-    delete_image(filename)
+    _delete_image(filename)
 
     return redirect(url_for('admin_products.edit', product_id=product_id))
