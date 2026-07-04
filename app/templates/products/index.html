@@ -30,8 +30,9 @@ color: var(--muted); white-space: nowrap; transition: color 0.15s, border-color
 0.15s; flex-shrink: 0; } .filter-pill { text-decoration: none; }
 .filter-pill:hover { color: var(--text); } .filter-pill.active { color:
 var(--text); border-bottom-color: var(--text); font-weight: 500; }
-.filter-count-label { font-size: 12px; color: var(--muted); white-space: nowrap;
-flex-shrink: 0; padding: 0 16px 0 8px; } /* ── PRODUCT GRID ── */ .products-body
+.filter-category-select { display: none; } .filter-count-label { font-size:
+12px; color: var(--muted); white-space: nowrap; flex-shrink: 0; padding: 0 16px
+0 8px; } /* ── PRODUCT GRID ── */ .products-body
 { max-width: 1280px; margin: 0 auto; padding: 48px 24px 80px; } .product-grid {
 display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px 24px; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to {
@@ -73,7 +74,14 @@ grid-template-columns: repeat(3, 1fr); } } @media (max-width: 768px) {
 .product-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
 .products-body { padding: 32px 16px 60px; } .filter-pill { padding: 16px 14px;
 font-size: 11px; } .products-header { padding: 48px 24px 40px; } .filter-bar {
-top: 64px; } } @media (max-width: 480px) { .product-grid { gap: 20px 10px; } }
+top: 64px; } .filter-pills-row { display: none; } .filter-category-select {
+display: block; flex: 1; min-width: 0; margin: 0 10px; padding: 9px 28px 9px
+12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px;
+font-family: inherit; color: var(--text); background: #fff
+url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8'
+height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b67'/%3E%3C/svg%3E")
+no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
+(max-width: 480px) { .product-grid { gap: 20px 10px; } }
 {% endblock %} {% block banner %}
 <section class="products-header">
   <div class="products-header-inner">
@@ -147,6 +155,19 @@ top: 64px; } } @media (max-width: 480px) { .product-grid { gap: 20px 10px; } }
       >
       {% endfor %}
     </div>
+    <select
+      class="filter-category-select"
+      aria-label="Filter by category"
+      onchange="if (this.value) window.location.href = this.value;"
+    >
+      {% for cat in categories %}
+      <option
+        value="{{ url_for('products.index', gender=(active_gender if active_gender else None), category=(cat if cat != 'All' else None)) }}"
+        {% if cat == active_category or (cat == 'All' and not active_category) %}selected{% endif %}
+        >{{ cat }}</option
+      >
+      {% endfor %}
+    </select>
     <span class="filter-count-label" id="filter-count"
       >{{ products | length }} pieces</span
     >
