@@ -339,15 +339,26 @@
         z-index: 50;
       }
 
-      .filter-bar-inner {
+      .filter-heading {
         max-width: 1340px;
         margin: 0 auto;
-        padding: 0 32px;
-        height: 54px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
+        padding: 44px 32px 8px;
+        text-align: center;
+      }
+
+      .filter-heading-title {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 38px;
+        font-weight: 300;
+        letter-spacing: -0.01em;
+        margin-bottom: 10px;
+      }
+
+      .filter-heading-sub {
+        font-size: 11px;
+        font-weight: 300;
+        letter-spacing: 0.06em;
+        color: var(--muted);
       }
 
       .filter-pills {
@@ -396,58 +407,6 @@
         transform: scale(1.04);
       }
 
-      /* Gender tabs inside filter bar */
-      .gender-tab-row {
-        display: flex;
-        align-items: stretch;
-        flex-shrink: 0;
-        border-right: 1px solid var(--border);
-        margin-right: 12px;
-        padding-right: 4px;
-      }
-      .gender-tab-btn {
-        padding: 0 18px;
-        height: 54px;
-        font-size: 10px;
-        font-weight: 400;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        background: none;
-        border: none;
-        border-bottom: 2px solid transparent;
-        cursor: pointer;
-        font-family: inherit;
-        color: var(--muted);
-        white-space: nowrap;
-        transition: color 0.15s, border-color 0.15s;
-      }
-      .gender-tab-btn:hover { color: var(--text); }
-      .gender-tab-btn.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
-
-      /* Section view-all link */
-      .section-viewall {
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--muted);
-        transition: color 0.15s;
-      }
-      .section-viewall:hover { color: var(--accent); }
-
-      .filter-sort {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-shrink: 0;
-      }
-
-      .filter-count {
-        font-size: 11px;
-        letter-spacing: 0.06em;
-        color: var(--muted);
-        white-space: nowrap;
-      }
-
       .sort-select {
         font-size: 10px;
         letter-spacing: 0.1em;
@@ -466,230 +425,63 @@
         border-radius: 0;
       }
 
-      /* ── MAIN ── */
-      .main-section {
+      /* ── CATEGORY GRID ── */
+      .category-section {
         max-width: 1340px;
         margin: 0 auto;
-        padding: 0 32px 96px;
+        padding: 36px 32px 64px;
       }
 
-      .section-header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        padding: 56px 0 36px;
-      }
-
-      .section-title {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 38px;
-        font-weight: 300;
-        letter-spacing: -0.01em;
-      }
-
-      .section-meta {
-        font-size: 10px;
-        font-weight: 400;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-
-      /* ── PRODUCT GRID ── */
-      .product-grid {
+      .category-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 44px 28px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
       }
 
-      /* Stagger fade-up on load */
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(18px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .product-card {
-        cursor: pointer;
-        animation: fadeUp 0.55s ease both;
-      }
-      .product-card:nth-child(1) {
-        animation-delay: 0.04s;
-      }
-      .product-card:nth-child(2) {
-        animation-delay: 0.09s;
-      }
-      .product-card:nth-child(3) {
-        animation-delay: 0.14s;
-      }
-      .product-card:nth-child(4) {
-        animation-delay: 0.19s;
-      }
-      .product-card:nth-child(5) {
-        animation-delay: 0.24s;
-      }
-      .product-card:nth-child(6) {
-        animation-delay: 0.29s;
-      }
-      .product-card:nth-child(7) {
-        animation-delay: 0.34s;
-      }
-      .product-card:nth-child(8) {
-        animation-delay: 0.39s;
-      }
-      .product-card:nth-child(9) {
-        animation-delay: 0.44s;
-      }
-      .product-card:nth-child(10) {
-        animation-delay: 0.49s;
-      }
-      .product-card:nth-child(11) {
-        animation-delay: 0.54s;
-      }
-      .product-card:nth-child(12) {
-        animation-delay: 0.59s;
-      }
-
-      /* Portrait image container — 2:3 matches 600×900 product shots */
-      .card-image {
-        width: 100%;
+      .category-card {
+        position: relative;
+        display: block;
         aspect-ratio: 2 / 3;
         background: #faf8f5;
-        position: relative;
         overflow: hidden;
-        margin-bottom: 16px;
+        cursor: pointer;
       }
 
-      /* Crossfade images — contain so full model is always visible */
-      .card-img-primary,
-      .card-img-hover {
+      .category-card-img {
         position: absolute;
         inset: 0;
         width: 100%;
-        pointer-events: none;
         height: 100%;
-        object-fit: contain;
-        object-position: center;
+        object-fit: cover;
         display: block;
-        transition: opacity 0.5s ease;
+        transition: transform 0.35s;
       }
-      .card-img-hover {
-        opacity: 0;
-      }
-      @media (hover: hover) {
-        .product-card:hover .card-img-primary { opacity: 0; }
-        .product-card:hover .card-img-hover   { opacity: 1; }
+      .category-card:hover .category-card-img {
+        transform: scale(1.04);
       }
 
-      /* Wishlist heart */
-      .card-wish {
+      .category-card-overlay {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        z-index: 2;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 5px;
-        color: rgba(255, 255, 255, 0.8);
-        opacity: 0;
-        transition:
-          opacity 0.22s,
-          color 0.2s;
-        line-height: 0;
-      }
-      @media (hover: hover) {
-        .product-card:hover .card-wish { opacity: 1; }
-      }
-      .card-wish.wished {
-        color: var(--accent);
-        opacity: 1;
-      }
-      .card-wish.wished svg {
-        fill: var(--accent);
-      }
-      .card-wish svg {
-        width: 18px;
-        height: 18px;
-        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(22, 18, 15, 0.62) 0%,
+          transparent 55%
+        );
+        pointer-events: none;
       }
 
-      /* "Add to Bag" hover strip */
-      .card-atb {
+      .category-card-label {
         position: absolute;
-        bottom: 0;
+        bottom: 14px;
         left: 0;
         right: 0;
-        pointer-events: none;
-        padding: 11px 0 13px;
         text-align: center;
-        background: rgba(250, 248, 245, 0.93);
-        font-size: 10px;
-        font-weight: 400;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--text);
-        opacity: 0;
-        transform: translateY(8px);
-        transition:
-          opacity 0.28s,
-          transform 0.28s;
-      }
-      @media (hover: hover) {
-        .product-card:hover .card-atb { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Card text */
-      .card-info {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        row-gap: 5px;
-        column-gap: 12px;
-        align-items: baseline;
-      }
-
-      .card-label {
         font-size: 10px;
         font-weight: 400;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--muted);
-        grid-column: 1 / -1;
-      }
-
-      .card-name {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 18px;
-        font-weight: 300;
-        line-height: 1.25;
-        color: var(--text);
-      }
-
-      .card-price {
-        font-size: 13px;
-        font-weight: 400;
-        color: var(--muted);
-        white-space: nowrap;
-        text-align: right;
-      }
-
-      /* Empty state */
-      .empty-state {
-        grid-column: 1 / -1;
-        padding: 96px 0;
-        text-align: center;
-        color: var(--muted);
-        font-size: 14px;
-        font-weight: 300;
-      }
-      .empty-state a {
-        color: var(--accent);
-        border-bottom: 1px solid currentColor;
+        color: #fff;
       }
 
       /* ── NEWSLETTER ── */
@@ -852,7 +644,9 @@
         align-items: center;
         gap: 12px;
       }
-      .search-overlay.open { display: flex; }
+      .search-overlay.open {
+        display: flex;
+      }
       .search-overlay form {
         display: flex;
         flex: 1;
@@ -900,9 +694,9 @@
 
       /* ── RESPONSIVE ── */
       @media (max-width: 1060px) {
-        .product-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 36px 22px;
+        .category-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: 22px;
         }
         .footer-grid {
           grid-template-columns: 1fr 1fr;
@@ -936,21 +730,21 @@
           grid-template-columns: 1fr;
           gap: 36px;
         }
-        .filter-bar-inner {
-          padding: 0 20px;
+        .filter-heading {
+          padding: 44px 20px 8px;
         }
-        .main-section {
-          padding: 0 20px 72px;
+        .category-section {
+          padding: 36px 20px 56px;
         }
-        .section-header {
-          padding: 40px 0 28px;
+        .category-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 22px;
         }
       }
 
       @media (max-width: 580px) {
-        .product-grid {
-          grid-template-columns: 1fr;
-          gap: 36px;
+        .category-grid {
+          gap: 20px;
         }
         .footer-grid {
           grid-template-columns: 1fr;
@@ -972,11 +766,11 @@
         .hero-content {
           padding: 0 20px 44px;
         }
-        .filter-bar-inner {
-          padding: 0 16px;
+        .filter-heading {
+          padding: 44px 16px 8px;
         }
-        .main-section {
-          padding: 0 16px 56px;
+        .category-section {
+          padding: 36px 16px 48px;
         }
       }
     </style>
@@ -995,7 +789,14 @@
         <div class="header-right">
           <div class="header-icons">
             <button id="search-btn" aria-label="Search">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
                 <circle cx="11" cy="11" r="7" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" />
               </svg>
@@ -1046,11 +847,31 @@
     <!-- Search overlay -->
     <div class="search-overlay" id="search-overlay" role="search">
       <form action="/search" method="get">
-        <input type="text" name="q" id="search-input" placeholder="Search products…" autocomplete="off">
+        <input
+          type="text"
+          name="q"
+          id="search-input"
+          placeholder="Search products…"
+          autocomplete="off"
+        />
         <button type="submit">Search</button>
       </form>
-      <button class="search-close-btn" id="search-close" aria-label="Close search">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button
+        class="search-close-btn"
+        id="search-close"
+        aria-label="Close search"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
     </div>
 
@@ -1089,17 +910,14 @@
     <section class="hero">
       <div class="hero-bg">
         {% if banner_image %}
-        <img
-          src="{{ banner_image | image_url }}"
-          alt=""
-        />
+        <img src="{{ banner_image | image_url }}" alt="" />
         {% endif %}
       </div>
       <div class="hero-tint"></div>
       <div class="hero-veil"></div>
       <div class="hero-content">
         <p class="hero-eyebrow">Spring / Summer 2026</p>
-        <h1 class="hero-title">The<br /><em>Collection</em></h1>
+        <h1 class="hero-title">Fashion<br /><em>Store</em></h1>
         <a href="/products" class="hero-cta">
           Explore All
           <svg
@@ -1117,91 +935,30 @@
       </div>
     </section>
 
-    <!-- ── GENDER + FILTER BAR ── -->
+    <!-- ── FILTER BAR ── -->
     <div class="filter-bar">
-      <div class="filter-bar-inner">
-        <!-- Gender toggle -->
-        <div class="gender-tab-row" id="gender-tabs">
-          <button class="gender-tab-btn active" type="button" data-gender="women">Women</button>
-          <button class="gender-tab-btn" type="button" data-gender="men">Men</button>
-        </div>
-        <div class="filter-sort">
-          <span class="filter-count" id="filter-count">{{ women_products | length }} pieces</span>
-        </div>
+      <div class="filter-heading">
+        <h2 class="filter-heading-title">Shop by Category</h2>
+        <p class="filter-heading-sub">Explore our curated collections</p>
       </div>
     </div>
 
-    <!-- ── WOMEN SECTION ── -->
-    <main class="main-section" id="women-section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Women</h2>
-          <span class="section-meta">New Arrivals 2026</span>
-        </div>
-        <a href="/products?gender=Women" class="section-viewall">View all →</a>
+    <!-- ── CATEGORY GRID ── -->
+    <section class="category-section">
+      <div class="category-grid">
+        {% for cat in categories %}
+        <a href="{{ cat.link }}" class="category-card">
+          <img
+            class="category-card-img"
+            src="{{ cat.image | image_url }}"
+            alt="{{ cat.name }}"
+          />
+          <span class="category-card-overlay"></span>
+          <span class="category-card-label">{{ cat.name }}</span>
+        </a>
+        {% endfor %}
       </div>
-      <div class="product-grid" id="women-grid">
-        {% if women_products %}
-          {% for p in women_products %}
-          <a class="product-card" href="/products/{{ p._id }}" data-category="{{ p.get('category', '')|lower }}">
-            <div class="card-image" style="background:{{ p.bg }};">
-              {% if p.get('images') %}
-              <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
-              <img class="card-img-hover"   src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}" alt="{{ p.name }}" />
-              {% endif %}
-              <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/></svg>
-              </button>
-              <div class="card-atb">Add to Bag</div>
-            </div>
-            <div class="card-info">
-              {% if p.get('category') %}<span class="card-label">{{ p.category }}</span>{% endif %}
-              <span class="card-name">{{ p.name }}</span>
-              <span class="card-price">${{ '%.2f' | format(p.price) }}</span>
-            </div>
-          </a>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state">No women's featured products yet. <a href="{{ url_for('admin_products.add') }}">Add one.</a></div>
-        {% endif %}
-      </div>
-    </main>
-
-    <!-- ── MEN SECTION ── -->
-    <main class="main-section" id="men-section" style="display:none;">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Men</h2>
-          <span class="section-meta">New Arrivals 2026</span>
-        </div>
-        <a href="/products?gender=Men" class="section-viewall">View all →</a>
-      </div>
-      <div class="product-grid" id="men-grid">
-        {% if men_products %}
-          {% for p in men_products %}
-          <a class="product-card" href="/products/{{ p._id }}" data-category="{{ p.get('category', '')|lower }}">
-            <div class="card-image" style="background:{{ p.bg }};">
-              {% if p.get('images') %}
-              <img class="card-img-primary" src="{{ p.images[0] | image_url }}" alt="{{ p.name }}" />
-              <img class="card-img-hover"   src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}" alt="{{ p.name }}" />
-              {% endif %}
-              <button class="card-wish {% if p._id in wishlist_ids %}wished{% endif %}" aria-label="Save to wishlist" onclick="toggleWishlist(event, this, '{{ p._id }}')" data-pid="{{ p._id }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21C12 21 3 14 3 8a5 5 0 019-3 5 5 0 019 3c0 6-9 13-9 13z"/></svg>
-              </button>
-              <div class="card-atb">Add to Bag</div>
-            </div>
-            <div class="card-info">
-              {% if p.get('category') %}<span class="card-label">{{ p.category }}</span>{% endif %}
-              <span class="card-name">{{ p.name }}</span>
-              <span class="card-price">${{ '%.2f' | format(p.price) }}</span>
-            </div>
-          </a>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state">No men's featured products yet. <a href="{{ url_for('admin_products.add') }}">Add one.</a></div>
-        {% endif %}
-      </div>
-    </main>
+    </section>
 
     <!-- ── NEWSLETTER ── -->
     <section class="newsletter-section">
@@ -1309,67 +1066,25 @@
           if (e.key === "Escape") shut();
         });
       })();
-
-      // Wishlist toggle
-      function toggleWishlist(e, btn, productId) {
-        e.preventDefault();
-        e.stopPropagation();
-        fetch('/wishlist/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id: productId })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          btn.classList.toggle('wished', data.wished);
-        });
-      }
-
-      // Gender tabs
-      (function () {
-        var genderBtns   = document.querySelectorAll(".gender-tab-btn");
-        var womenSec     = document.getElementById("women-section");
-        var menSec       = document.getElementById("men-section");
-        var womenGrid    = document.getElementById("women-grid");
-        var menGrid      = document.getElementById("men-grid");
-        var countEl      = document.getElementById("filter-count");
-
-        function updateCount(grid) {
-          var n = grid ? grid.querySelectorAll(".product-card").length : 0;
-          if (countEl) countEl.textContent = n + (n === 1 ? " piece" : " pieces");
-        }
-
-        genderBtns.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            genderBtns.forEach(function (b) { b.classList.remove("active"); });
-            this.classList.add("active");
-
-            if (this.dataset.gender === "women") {
-              womenSec.style.display = "";
-              menSec.style.display   = "none";
-              updateCount(womenGrid);
-            } else {
-              womenSec.style.display = "none";
-              menSec.style.display   = "";
-              updateCount(menGrid);
-            }
-          });
-        });
-
-        updateCount(womenGrid);
-      })();
     </script>
     <script>
       (function () {
-        var searchBtn     = document.getElementById('search-btn');
-        var searchOverlay = document.getElementById('search-overlay');
-        var searchClose   = document.getElementById('search-close');
-        var searchInput   = document.getElementById('search-input');
-        function openSearch() { searchOverlay.classList.add('open'); searchInput.focus(); }
-        function closeSearch() { searchOverlay.classList.remove('open'); }
-        searchBtn.addEventListener('click', openSearch);
-        searchClose.addEventListener('click', closeSearch);
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSearch(); });
+        var searchBtn = document.getElementById("search-btn");
+        var searchOverlay = document.getElementById("search-overlay");
+        var searchClose = document.getElementById("search-close");
+        var searchInput = document.getElementById("search-input");
+        function openSearch() {
+          searchOverlay.classList.add("open");
+          searchInput.focus();
+        }
+        function closeSearch() {
+          searchOverlay.classList.remove("open");
+        }
+        searchBtn.addEventListener("click", openSearch);
+        searchClose.addEventListener("click", closeSearch);
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeSearch();
+        });
       })();
     </script>
   </body>

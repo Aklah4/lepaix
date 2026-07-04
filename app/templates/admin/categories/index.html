@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Categories — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}" class="active">Categories</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Catalog</p>
+        <h1>Categories</h1>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('admin_categories.add') }}" class="btn-add">+ Add category</a>
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link">Sign out</a>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <p class="hint">These are the category cards shown on the homepage, in the order below. Drag isn't supported — set the order number to reorder.</p>
+
+    <!-- Table -->
+    <div class="panel">
+      {% if categories %}
+      <table class="category-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Link</th>
+            <th>Order</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in categories %}
+          <tr>
+            <td>
+              <div class="category-row">
+                <div class="category-thumb">
+                  {% if c.image %}
+                  <img src="{{ c.image | image_url }}" alt="{{ c.name }}" />
+                  {% endif %}
+                </div>
+                <span class="category-name">{{ c.name }}</span>
+              </div>
+            </td>
+            <td><code>{{ c.link }}</code></td>
+            <td>{{ c.order }}</td>
+            <td class="row-actions">
+              <a href="{{ url_for('admin_categories.edit', category_id=c._id) }}">Edit</a>
+              <form method="post"
+                    action="{{ url_for('admin_categories.delete', category_id=c._id) }}"
+                    onsubmit="return confirm('Delete {{ c.name }}?');"
+                    style="display:inline;">
+                <button type="submit" class="delete-btn">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>No categories yet.</p>
+        <a href="{{ url_for('admin_categories.add') }}" class="btn-add">Add your first category</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+  :root { --bg:#f7f4f0;--surface:#fff;--border:#e8e4df;--text:#1a1a18;--muted:#6b6b67;--accent:#e8341a; }
+  .admin-shell { display:grid;grid-template-columns:260px 1fr;gap:28px;min-height:calc(100vh - 100px); }
+  .admin-sidebar { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 24px;display:flex;flex-direction:column;gap:28px; }
+  .brand { font-family:'Playfair Display',serif;font-size:24px; }
+  .admin-nav { display:grid;gap:12px; }
+  .admin-nav a { display:block;color:var(--text);padding:14px 18px;border-radius:14px;font-size:14px;border:1px solid transparent; }
+  .admin-nav a.active,.admin-nav a:hover { background:var(--bg);border-color:var(--border); }
+  .admin-content { background:transparent; }
+  .admin-header { display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px; }
+  .eyebrow { text-transform:uppercase;font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px; }
+  .admin-header h1 { margin:0;font-size:2rem;line-height:1.05; }
+  .header-actions { display:flex;align-items:center;gap:12px; }
+  .btn-add { padding:10px 18px;border-radius:999px;background:var(--text);color:#fff;font-size:13px;font-family:inherit;border:none;cursor:pointer;text-decoration:none; }
+  .text-link { font-size:14px;color:var(--muted); }
+
+  .flash { padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px; }
+  .flash-success { background:#e6f9f0;color:#1a7a4a;border:1px solid #b0e8cc; }
+  .flash-error   { background:#fef2f0;color:#c0392b;border:1px solid #f5c6c2; }
+
+  .hint { font-size:13px;color:var(--muted);margin-bottom:16px; }
+
+  .panel { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:22px;overflow:auto; }
+  .category-table { width:100%;border-collapse:collapse;font-size:14px; }
+  .category-table th { padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap; }
+  .category-table td { padding:14px;border-bottom:1px solid var(--border);vertical-align:middle; }
+  .category-table tr:last-child td { border-bottom:none; }
+  .category-row { display:flex;align-items:center;gap:12px; }
+  .category-thumb { width:48px;height:64px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f0ede8;position:relative; }
+  .category-thumb img { width:100%;height:100%;object-fit:cover; }
+  .category-name { font-weight:500; }
+  .category-table code { font-size:12px;color:var(--muted); }
+  .row-actions { display:flex;gap:10px;align-items:center; }
+  .row-actions a { font-size:13px;color:var(--text);text-decoration:underline; }
+  .delete-btn { background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0; }
+
+  .empty-state { padding:60px;text-align:center;color:var(--muted); }
+  .empty-state p { margin-bottom:16px; }
+</style>
+{% endblock %}

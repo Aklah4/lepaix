@@ -36,6 +36,7 @@ def create_app():
     from app.blueprints.admin.orders import admin_orders_bp
     from app.blueprints.admin.settings import admin_settings_bp
     from app.blueprints.admin.blog import admin_blog_bp
+    from app.blueprints.admin.categories import admin_categories_bp
     from app.blueprints.index import index_bp
     from app.blueprints.products import products_bp
     from app.blueprints.pages import pages_bp
@@ -50,6 +51,7 @@ def create_app():
     app.register_blueprint(admin_orders_bp)
     app.register_blueprint(admin_settings_bp)
     app.register_blueprint(admin_blog_bp)
+    app.register_blueprint(admin_categories_bp)
     app.register_blueprint(index_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(pages_bp)

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request
 from app.db import get_db
+from app.blueprints.admin.categories import ensure_default_categories
 
 index_bp = Blueprint('index', __name__)
 
@@ -38,14 +39,14 @@ def search():
 
 @index_bp.route('/')
 def index():
-    db   = get_db()
-    base = {'status': 'published', 'featured': True}
+    db = get_db()
 
-    women = _prep(list(db.products.find({**base, 'gender': 'Women'}).sort('created_at', -1).limit(8)))
-    men   = _prep(list(db.products.find({**base, 'gender': 'Men'}).sort('created_at', -1).limit(8)), offset=8)
+    ensure_default_categories(db)
+    categories = list(db.categories.find().sort('order', 1))
+    for c in categories:
+        c['_id'] = str(c['_id'])
 
     settings = db.settings.find_one({'_id': 'site'}) or {}
     return render_template('index.html',
-                           women_products=women,
-                           men_products=men,
+                           categories=categories,
                            banner_image=settings.get('banner_image'))

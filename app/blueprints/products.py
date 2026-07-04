@@ -22,20 +22,26 @@ def _prep(products):
 
 @products_bp.route('/')
 def index():
-    db     = get_db()
-    gender = request.args.get('gender', '')
+    db       = get_db()
+    gender   = request.args.get('gender', '')
+    category = request.args.get('category', '')
 
     query = {'status': 'published'}
     if gender in ('Women', 'Men'):
         query['gender'] = gender
 
     cat_query  = {**query}
-    categories = ['All'] + db.products.distinct('category', cat_query)
-    raw        = list(db.products.find(query).sort('created_at', -1).limit(24))
-    products   = _prep(raw)
+    categories = ['All'] + sorted(c for c in db.products.distinct('category', cat_query) if c)
+
+    if category and category != 'All':
+        query['category'] = category
+
+    raw      = list(db.products.find(query).sort('created_at', -1).limit(24))
+    products = _prep(raw)
 
     return render_template('products/index.html', products=products,
-                           categories=categories, active_gender=gender)
+                           categories=categories, active_gender=gender,
+                           active_category=category)
 
 
 @products_bp.route('/<product_id>')

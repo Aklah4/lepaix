@@ -6,6 +6,7 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
 
 from app.db import get_db
 from app.uploader import delete_image as _delete_image, upload_image
+from app.blueprints.admin.categories import ensure_default_categories
 
 admin_products_bp = Blueprint('admin_products', __name__, url_prefix='/admin/products')
 
@@ -14,6 +15,11 @@ def _auth_required():
     if not session.get('admin_id'):
         return redirect(url_for('admin_auth.login'))
     return None
+
+
+def _category_names(db):
+    ensure_default_categories(db)
+    return [c['name'] for c in db.categories.find().sort('order', 1)]
 
 
 def _allowed(filename):
@@ -69,7 +75,8 @@ def add():
     if guard:
         return guard
 
-    db = get_db()
+    db         = get_db()
+    categories = _category_names(db)
 
     if request.method == 'POST':
         name     = request.form.get('name', '').strip()
@@ -85,14 +92,14 @@ def add():
 
         if not name or not price_s:
             flash('Name and price are required.', 'error')
-            return render_template('admin/products/add.html')
+            return render_template('admin/products/add.html', categories=categories)
 
         try:
             price = float(price_s)
             stock = int(stock_s)
         except ValueError:
             flash('Price and stock must be numbers.', 'error')
-            return render_template('admin/products/add.html')
+            return render_template('admin/products/add.html', categories=categories)
 
         images = []
         for file in request.files.getlist('images'):
@@ -118,12 +125,12 @@ def add():
             db.products.insert_one(doc)
         except Exception as e:
             flash(f'Database error: {e}', 'error')
-            return render_template('admin/products/add.html')
+            return render_template('admin/products/add.html', categories=categories)
 
         flash(f'Product "{name}" added successfully.', 'success')
         return redirect(url_for('admin_products.index'))
 
-    return render_template('admin/products/add.html')
+    return render_template('admin/products/add.html', categories=categories)
 
 
 # ── Edit ──────────────────────────────────────────────────────────────────────
@@ -146,6 +153,9 @@ def edit(product_id):
         return redirect(url_for('admin_products.index'))
 
     product['_id'] = str(product['_id'])
+    categories = _category_names(db)
+    if product.get('category') and product['category'] not in categories:
+        categories = [product['category']] + categories
 
     if request.method == 'POST':
         name     = request.form.get('name', '').strip()
@@ -161,14 +171,14 @@ def edit(product_id):
 
         if not name or not price_s:
             flash('Name and price are required.', 'error')
-            return render_template('admin/products/edit.html', product=product)
+            return render_template('admin/products/edit.html', product=product, categories=categories)
 
         try:
             price = float(price_s)
             stock = int(stock_s)
         except ValueError:
             flash('Price and stock must be numbers.', 'error')
-            return render_template('admin/products/edit.html', product=product)
+            return render_template('admin/products/edit.html', product=product, categories=categories)
 
         # Append newly uploaded images to existing ones
         existing_images = product.get('images', [])
@@ -193,12 +203,12 @@ def edit(product_id):
             }})
         except Exception as e:
             flash(f'Database error: {e}', 'error')
-            return render_template('admin/products/edit.html', product=product)
+            return render_template('admin/products/edit.html', product=product, categories=categories)
 
         flash(f'Product "{name}" updated.', 'success')
         return redirect(url_for('admin_products.index'))
 
-    return render_template('admin/products/edit.html', product=product)
+    return render_template('admin/products/edit.html', product=product, categories=categories)
 
 
 # ── Delete ────────────────────────────────────────────────────────────────────

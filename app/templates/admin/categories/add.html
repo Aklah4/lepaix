@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Add Category — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}" class="active">Categories</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow"><a href="{{ url_for('admin_categories.index') }}">← Categories</a></p>
+        <h1>Add Category</h1>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form class="category-form" method="post" enctype="multipart/form-data">
+      <div class="panel">
+        <h2 class="panel-title">Category details</h2>
+
+        <div class="field">
+          <label for="name">Name <span class="req">*</span></label>
+          <input type="text" id="name" name="name" required placeholder="e.g. Glasses" />
+        </div>
+
+        <div class="field">
+          <label for="link">Link</label>
+          <input type="text" id="link" name="link" placeholder="/products?category=Glasses" />
+          <p class="field-hint">Where the card links to. Defaults to <code>/products</code> if left blank.</p>
+        </div>
+
+        <div class="field">
+          <label for="order">Order</label>
+          <input type="number" id="order" name="order" min="1" placeholder="Position on the homepage" />
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Image</h2>
+        <p class="field-hint">Portrait image recommended (PNG, JPG, WEBP).</p>
+        <div class="upload-zone" id="upload-zone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>Drag & drop or <label for="image" class="upload-link">browse files</label></p>
+          <input type="file" id="image" name="image" accept="image/*" style="display:none;" />
+        </div>
+        <div class="image-preview-grid" id="image-preview-grid"></div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('admin_categories.index') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-primary">Add Category</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+  :root { --bg:#f7f4f0;--surface:#fff;--border:#e8e4df;--text:#1a1a18;--muted:#6b6b67;--accent:#e8341a; }
+  .admin-shell { display:grid;grid-template-columns:260px 1fr;gap:28px;min-height:calc(100vh - 100px); }
+  .admin-sidebar { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 24px;display:flex;flex-direction:column;gap:28px; }
+  .brand { font-family:'Playfair Display',serif;font-size:24px; }
+  .admin-nav { display:grid;gap:12px; }
+  .admin-nav a { display:block;color:var(--text);padding:14px 18px;border-radius:14px;font-size:14px;border:1px solid transparent; }
+  .admin-nav a.active,.admin-nav a:hover { background:var(--bg);border-color:var(--border); }
+  .admin-header { display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px; }
+  .eyebrow { text-transform:uppercase;font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px; }
+  .eyebrow a { color:var(--muted); }
+  .admin-header h1 { margin:0;font-size:2rem; }
+  .flash { padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px; }
+  .flash-success { background:#e6f9f0;color:#1a7a4a;border:1px solid #b0e8cc; }
+  .flash-error   { background:#fef2f0;color:#c0392b;border:1px solid #f5c6c2; }
+
+  .category-form { display:flex;flex-direction:column;gap:20px;max-width:560px; }
+
+  .panel { background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px; }
+  .panel-title { font-size:15px;font-weight:600;margin-bottom:18px; }
+
+  .field { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+  .field:last-child { margin-bottom:0; }
+  .field label { font-size:13px;font-weight:500; }
+  .req { color:var(--accent); }
+  .field input {
+    padding:10px 14px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;font-family:inherit;color:var(--text);background:#fff;outline:none;
+    transition:border-color .15s;width:100%;
+  }
+  .field input:focus { border-color:var(--text); }
+  .field-hint { font-size:12px;color:var(--muted);margin-top:2px; }
+  .field-hint code { background:var(--bg);padding:2px 5px;border-radius:4px; }
+
+  .upload-zone {
+    border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;
+    color:var(--muted);cursor:pointer;transition:border-color .15s;
+  }
+  .upload-zone:hover,.upload-zone.drag-over { border-color:var(--text); }
+  .upload-zone svg { margin:0 auto 10px;display:block; }
+  .upload-zone p { font-size:14px;margin:0; }
+  .upload-link { color:var(--text);text-decoration:underline;cursor:pointer; }
+  .image-preview-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px; }
+  .preview-thumb { position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--bg); }
+  .preview-thumb img { width:100%;height:100%;object-fit:cover; }
+
+  .form-actions { display:flex;gap:10px;justify-content:flex-end; }
+  .btn-cancel { padding:11px 20px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center; }
+  .btn-primary { padding:11px 24px;border-radius:999px;background:var(--text);color:#fff;border:none;font-size:14px;font-family:inherit;cursor:pointer; }
+  .btn-primary:hover { opacity:.85; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const fileInput   = document.getElementById('image');
+  const previewGrid = document.getElementById('image-preview-grid');
+  const uploadZone  = document.getElementById('upload-zone');
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    fileInput.files = e.dataTransfer.files;
+    renderPreview();
+  });
+
+  fileInput.addEventListener('change', renderPreview);
+
+  function renderPreview() {
+    previewGrid.innerHTML = '';
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'preview-thumb';
+      div.innerHTML = `<img src="${e.target.result}" alt="preview" />`;
+      previewGrid.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  }
+</script>
+{% endblock %}

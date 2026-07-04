@@ -9,6 +9,7 @@
       <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
       <a href="{{ url_for('admin_orders.index') }}">Orders</a>
       <a href="{{ url_for('admin_products.index') }}" class="active">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}">Categories</a>
       <a href="{{ url_for('admin_blog.index') }}">Blog</a>
       <a href="#">Customers</a>
       <a href="{{ url_for('admin_settings.index') }}">Settings</a>
@@ -92,14 +93,13 @@
 
             <div class="field">
               <label for="category">Category</label>
-              <input type="text" id="category" name="category"
-                     value="{{ product.get('category', '') }}" list="cat-list" />
-              <datalist id="cat-list">
-                <option value="Jackets"><option value="Hoodies"><option value="Coats">
-                <option value="Knitwear"><option value="Shirts"><option value="Shorts">
-                <option value="Blazers"><option value="Outerwear"><option value="Dresses">
-                <option value="Accessories"><option value="Sneakers">
-              </datalist>
+              <select id="category" name="category">
+                <option value="" {% if not product.get('category') %}selected{% endif %}>No category</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if product.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+              <p class="field-hint">Managed in <a href="{{ url_for('admin_categories.index') }}">Categories</a>.</p>
             </div>
 
             <div class="field">
