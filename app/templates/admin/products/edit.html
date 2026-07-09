@@ -26,6 +26,7 @@
         <form method="post"
               action="{{ url_for('admin_products.delete', product_id=product._id) }}"
               onsubmit="return confirm('Permanently delete this product?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn-danger">Delete product</button>
         </form>
       </div>
@@ -48,6 +49,7 @@
           <form method="post"
                 action="{{ url_for('admin_products.delete_image', product_id=product._id, filename=img) }}"
                 onsubmit="return confirm('Remove this image?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="remove-img-btn" title="Remove">×</button>
           </form>
         </div>
@@ -60,6 +62,7 @@
     <form class="product-form" method="post"
           action="{{ url_for('admin_products.edit', product_id=product._id) }}"
           enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <div class="form-grid">
 

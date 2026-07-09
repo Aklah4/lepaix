@@ -1,11 +1,35 @@
 import re
 from datetime import datetime, timezone
 from bson import ObjectId
+import nh3
 from flask import (Blueprint, render_template, redirect, request,
                    url_for, flash, session)
 from app.uploader import delete_image, upload_image
 
 admin_blog_bp = Blueprint('admin_blog', __name__, url_prefix='/admin/blog')
+
+# Matches the Quill toolbar configured in admin/blog/add.html and edit.html:
+# headings, bold/italic/underline, lists, blockquote, code-block, link, image.
+_BODY_ALLOWED_TAGS = {
+    'p', 'br', 'strong', 'em', 'u', 's',
+    'h2', 'h3', 'h4',
+    'ol', 'ul', 'li',
+    'blockquote', 'pre', 'code',
+    'a', 'img',
+}
+_BODY_ALLOWED_ATTRS = {
+    'a': {'href', 'target'},
+    'img': {'src', 'alt'},
+}
+
+
+def _sanitize_body(html):
+    return nh3.clean(
+        html or '',
+        tags=_BODY_ALLOWED_TAGS,
+        attributes=_BODY_ALLOWED_ATTRS,
+        url_schemes={'http', 'https', 'mailto'},
+    )
 
 
 def _auth_required():
@@ -55,9 +79,10 @@ def index():
     if status_filter in ('draft', 'published'):
         query['status'] = status_filter
     if search:
+        pattern = re.escape(search)
         query['$or'] = [
-            {'title': {'$regex': search, '$options': 'i'}},
-            {'category': {'$regex': search, '$options': 'i'}},
+            {'title': {'$regex': pattern, '$options': 'i'}},
+            {'category': {'$regex': pattern, '$options': 'i'}},
         ]
 
     total = db.posts.count_documents(query)
@@ -98,7 +123,7 @@ def add():
     slug_input = request.form.get('slug', '').strip()
     category = request.form.get('category', '').strip()
     excerpt = request.form.get('excerpt', '').strip()
-    body = request.form.get('body', '').strip()
+    body = _sanitize_body(request.form.get('body', '').strip())
     read_time = request.form.get('read_time', '').strip()
     status = request.form.get('status', 'draft')
 
@@ -165,7 +190,7 @@ def edit(post_id):
     slug_input = request.form.get('slug', '').strip()
     category = request.form.get('category', '').strip()
     excerpt = request.form.get('excerpt', '').strip()
-    body = request.form.get('body', '').strip()
+    body = _sanitize_body(request.form.get('body', '').strip())
     read_time = request.form.get('read_time', '').strip()
     status = request.form.get('status', 'draft')
 

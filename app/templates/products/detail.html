@@ -194,6 +194,7 @@
 
       <!-- Add-to-cart form -->
       <form method="post" action="{{ url_for('cart.add') }}" id="atc-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="product_id" value="{{ product._id }}">
         <input type="hidden" name="size" id="selected-size" value="M">
         <input type="hidden" name="color" id="selected-color" value="{{ product.colors[0] if product.get('colors') else '' }}">

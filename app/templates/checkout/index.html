@@ -78,6 +78,7 @@
   {% endwith %}
 
   <form method="post" action="{{ url_for('checkout.index') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="checkout-layout">
       <!-- Left: customer details -->
       <div>

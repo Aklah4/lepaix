@@ -98,6 +98,7 @@
         <img src="{{ settings.banner_image | image_url }}"
              alt="Current banner image" id="banner-preview-img">
         <form method="post" style="margin:0">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="remove_banner">
           <button class="remove-btn" type="submit"
                   onclick="return confirm('Remove the current banner image?')">Remove</button>
@@ -112,6 +113,7 @@
 
       <!-- Upload form -->
       <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="action" value="save">
         <input type="file" name="banner_image" id="banner-file" accept="image/*">
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('banner-file').click()">

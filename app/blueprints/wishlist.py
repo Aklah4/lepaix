@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, session, jsonify
 from bson import ObjectId
 from app.db import get_db
+from app.extensions import limiter
 
 wishlist_bp = Blueprint('wishlist', __name__, url_prefix='/wishlist')
 
@@ -36,6 +37,7 @@ def index():
 
 
 @wishlist_bp.route('/toggle', methods=['POST'])
+@limiter.limit('30 per minute')
 def toggle():
     data       = request.get_json(silent=True) or {}
     product_id = data.get('product_id') or request.form.get('product_id', '')

@@ -14,6 +14,7 @@
       action="{{ url_for('admin_auth.login') }}"
       novalidate
     >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <label for="username" class="visually-hidden">Username</label>
       <input
         id="username"

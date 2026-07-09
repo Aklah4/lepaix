@@ -31,6 +31,7 @@
     {% endwith %}
 
     <form class="category-form" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="panel">
         <h2 class="panel-title">Category details</h2>
 

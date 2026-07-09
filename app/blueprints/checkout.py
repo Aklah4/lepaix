@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, request, url_for, flash, session
 from bson import ObjectId
+from app.extensions import limiter
 
 checkout_bp = Blueprint('checkout', __name__, url_prefix='/checkout')
 
@@ -17,6 +18,7 @@ def _next_order_number(db):
 
 
 @checkout_bp.route('/', methods=['GET', 'POST'])
+@limiter.limit('5 per minute', methods=['POST'])
 def index():
     from app.db import get_db
     db = get_db()

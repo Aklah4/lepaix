@@ -91,6 +91,7 @@
     {% endwith %}
 
     <form method="post" enctype="multipart/form-data" id="post-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grid">
 
         <!-- Left: main content -->

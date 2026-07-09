@@ -103,6 +103,7 @@
             </div>
             <!-- Qty update form -->
             <form method="post" action="{{ url_for('cart.update') }}" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="product_id" value="{{ item.product_id }}">
               <input type="hidden" name="size" value="{{ item.size }}">
               <input type="hidden" name="color" value="{{ item.color }}">
@@ -118,6 +119,7 @@
           <div class="cart-item-price">
             <strong>${{ '%.2f' | format(item.subtotal) }}</strong>
             <form method="post" action="{{ url_for('cart.remove') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="product_id" value="{{ item.product_id }}">
               <input type="hidden" name="size" value="{{ item.size }}">
               <input type="hidden" name="color" value="{{ item.color }}">

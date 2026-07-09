@@ -1,6 +1,9 @@
+import re
+
 from flask import Blueprint, render_template, request
 from app.db import get_db
 from app.blueprints.admin.categories import ensure_default_categories
+from app.extensions import limiter
 
 index_bp = Blueprint('index', __name__)
 
@@ -20,17 +23,19 @@ def _prep(products, offset=0):
 
 
 @index_bp.route('/search')
+@limiter.limit('30 per minute')
 def search():
     db = get_db()
-    q  = request.args.get('q', '').strip()
+    q  = request.args.get('q', '').strip()[:100]
     products = []
     if q:
+        pattern = re.escape(q)
         raw = list(db.products.find({
             'status': 'published',
             '$or': [
-                {'name':        {'$regex': q, '$options': 'i'}},
-                {'category':    {'$regex': q, '$options': 'i'}},
-                {'description': {'$regex': q, '$options': 'i'}},
+                {'name':        {'$regex': pattern, '$options': 'i'}},
+                {'category':    {'$regex': pattern, '$options': 'i'}},
+                {'description': {'$regex': pattern, '$options': 'i'}},
             ]
         }).sort('created_at', -1))
         products = _prep(raw)

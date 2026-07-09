@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from bson import ObjectId
 from flask import Blueprint, render_template, redirect, request, url_for, flash, session
@@ -28,10 +29,11 @@ def index():
     if status_filter and status_filter in ORDER_STATUSES:
         query['status'] = status_filter
     if search:
+        pattern = re.escape(search)
         query['$or'] = [
-            {'order_number': {'$regex': search, '$options': 'i'}},
-            {'customer.name': {'$regex': search, '$options': 'i'}},
-            {'customer.email': {'$regex': search, '$options': 'i'}},
+            {'order_number': {'$regex': pattern, '$options': 'i'}},
+            {'customer.name': {'$regex': pattern, '$options': 'i'}},
+            {'customer.email': {'$regex': pattern, '$options': 'i'}},
         ]
 
     total = db.orders.count_documents(query)

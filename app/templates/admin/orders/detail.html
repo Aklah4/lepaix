@@ -195,6 +195,7 @@
 
           <form class="status-form" method="post"
                 action="{{ url_for('admin_orders.update_status', order_id=order._id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <select name="status" class="status-select">
               {% for s in ORDER_STATUSES %}
               <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s | capitalize }}</option>

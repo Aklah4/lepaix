@@ -1,12 +1,24 @@
 import os
+import secrets
 import cloudinary
 from flask import Flask, url_for
 from .db import init_db
+from .extensions import limiter, csrf
+from config import get_config
 
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('config.Config')
+    app.config.from_object(get_config())
+
+    if not app.config.get('SECRET_KEY'):
+        if app.config.get('DEBUG'):
+            app.config['SECRET_KEY'] = secrets.token_hex(32)
+            print('WARNING: SECRET_KEY not set — using a random key for this '
+                  'process only. Sessions will not persist across restarts. '
+                  'Set SECRET_KEY in .env to fix this.')
+        else:
+            raise RuntimeError('SECRET_KEY environment variable must be set outside of debug mode.')
 
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -21,6 +33,28 @@ def create_app():
 
     # Initialize database connection
     init_db(app)
+
+    limiter.init_app(app)
+    csrf.init_app(app)
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.quilljs.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.quilljs.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self';"
+        )
+        return response
 
     @app.template_filter('image_url')
     def image_url_filter(path):

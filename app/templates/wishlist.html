@@ -248,6 +248,7 @@
 {% block scripts %}
 <script>
   var _wlCount = {{ products | length }};
+  var _csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
   function removeFromWishlist(e, productId) {
     e.preventDefault();
@@ -255,7 +256,7 @@
 
     fetch('/wishlist/toggle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken },
       body: JSON.stringify({ product_id: productId })
     })
     .then(function(r) { return r.json(); })
@@ -305,7 +306,7 @@
           promises.push(
             fetch('/wishlist/toggle', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken },
               body: JSON.stringify({ product_id: pid })
             }).then(function(r) { return r.json(); })
           );

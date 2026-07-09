@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 
 from bson import ObjectId
@@ -43,7 +44,7 @@ def index():
 
     query = {}
     if search:
-        query['name'] = {'$regex': search, '$options': 'i'}
+        query['name'] = {'$regex': re.escape(search), '$options': 'i'}
     if status:
         query['status'] = status
     if category:

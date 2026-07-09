@@ -31,6 +31,7 @@
     {% endwith %}
 
     <form class="category-form" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="panel">
         <h2 class="panel-title">Category details</h2>
 
@@ -93,6 +94,7 @@
           <form method="post"
                 action="{{ url_for('admin_categories.remove_product', category_id=category._id, product_id=p._id) }}"
                 onsubmit="return confirm('Remove {{ p.name }} from this category?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="cp-remove">Remove</button>
           </form>
         </li>
@@ -104,6 +106,7 @@
 
       {% if available_products %}
       <form method="post" action="{{ url_for('admin_categories.add_product', category_id=category._id) }}" class="cp-add-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <select name="product_id" required>
           <option value="" disabled selected>Choose a product…</option>
           {% for p in available_products %}

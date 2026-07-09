@@ -2,14 +2,18 @@ from bson import ObjectId
 from flask import Blueprint, redirect, request, jsonify, session, url_for, render_template
 import bcrypt
 from app.db import get_db
-
-
+from app.extensions import limiter
 
 
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin/auth')
 
+# Compared against when the username doesn't exist, so a login attempt takes the
+# same time either way and can't be used to enumerate valid usernames by timing.
+_DUMMY_HASH = bcrypt.hashpw(b'no-such-user', bcrypt.gensalt()).decode('utf-8')
+
 
 @admin_auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit('10 per minute')
 def login():
     if request.method == 'GET':
         if session.get('admin_id'):
@@ -21,14 +25,13 @@ def login():
     password = request.form.get('password', '')
 
     admin = get_db().admins.find_one({'username': username})
-    if admin:
-        stored = admin.get('password', '')
-        try:
-            valid = bcrypt.checkpw(password.encode('utf-8'), stored.encode('utf-8'))
-        except Exception:
-            valid = False
-    else:
-        valid = False
+    stored = admin.get('password', '') if admin else _DUMMY_HASH
+    try:
+        checkpw_ok = bcrypt.checkpw(password.encode('utf-8'), stored.encode('utf-8'))
+    except Exception:
+        checkpw_ok = False
+
+    valid = bool(admin) and checkpw_ok
 
     if valid:
         session['admin_id'] = str(admin['_id'])

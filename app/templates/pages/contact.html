@@ -122,6 +122,7 @@
   <!-- Form -->
   <div class="contact-form-wrap">
     <form class="contact-form" method="post" action="/contact">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-row">
         <div class="form-group">
           <label for="first_name">First name</label>
