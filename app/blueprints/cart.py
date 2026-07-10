@@ -62,12 +62,12 @@ def add():
             item['quantity'] += quantity
             _save_cart(cart)
             flash('Cart updated.', 'success')
-            return redirect(url_for('cart.index'))
+            return redirect(request.referrer or url_for('products.index'))
 
     cart.append({'product_id': product_id, 'size': size, 'color': color, 'quantity': quantity})
     _save_cart(cart)
     flash('Item added to cart.', 'success')
-    return redirect(url_for('cart.index'))
+    return redirect(request.referrer or url_for('products.index'))
 
 
 @cart_bp.route('/remove', methods=['POST'])

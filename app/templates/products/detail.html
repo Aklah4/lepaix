@@ -5,6 +5,11 @@
 {% block head_styles %}
   .detail-main { max-width: 1280px; margin: 0 auto; padding: 40px 24px 64px; }
 
+  /* Flash */
+  .flash { padding: 12px 18px; border-radius: 10px; margin-bottom: 24px; font-size: 14px; }
+  .flash-success { background: #dcfce7; color: #15803d; }
+  .flash-error   { background: #fee2e2; color: #b91c1c; }
+
   /* Breadcrumb */
   .detail-breadcrumb {
     display: flex; align-items: center; gap: 6px;
@@ -144,6 +149,12 @@
 
 {% block content %}
 <div class="detail-main">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
   <!-- Breadcrumb -->
   <nav class="detail-breadcrumb" aria-label="Breadcrumb">
     <a href="/">Home</a>
