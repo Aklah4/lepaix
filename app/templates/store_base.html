@@ -607,22 +607,22 @@
             <h4>Company</h4>
             <a href="/pages/about">About Us</a>
             <a href="/blog">Blog</a>
-            <a href="#">Careers</a>
-            <a href="#">Locations</a>
+            <a href="{{ url_for('pages.placeholder', slug='careers') }}">Careers</a>
+            <a href="{{ url_for('pages.placeholder', slug='locations') }}">Locations</a>
           </div>
           <div class="footer-col">
             <h4>Customer Care</h4>
             <a href="/pages/size-guide">Size Guide</a>
             <a href="/pages/faq">Help &amp; FAQs</a>
-            <a href="#">Return My Order</a>
-            <a href="#">Refer a Friend</a>
+            <a href="{{ url_for('pages.placeholder', slug='returns') }}">Return My Order</a>
+            <a href="{{ url_for('pages.placeholder', slug='refer') }}">Refer a Friend</a>
           </div>
           <div class="footer-col">
             <h4>Terms &amp; Policies</h4>
-            <a href="#">Duties &amp; Taxes</a>
-            <a href="#">Shipping Info</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms Conditions</a>
+            <a href="{{ url_for('pages.placeholder', slug='shipping') }}">Duties &amp; Taxes</a>
+            <a href="{{ url_for('pages.placeholder', slug='shipping') }}">Shipping Info</a>
+            <a href="{{ url_for('pages.placeholder', slug='privacy') }}">Privacy Policy</a>
+            <a href="{{ url_for('pages.placeholder', slug='terms') }}">Terms Conditions</a>
           </div>
           <div class="footer-col">
             <h4>Follow us</h4>

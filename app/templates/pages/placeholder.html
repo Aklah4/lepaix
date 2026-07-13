@@ -1,0 +1,29 @@
+{% extends "store_base.html" %}
+
+{% block title %}{{ title }} — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .placeholder-main { max-width: 700px; margin: 0 auto; padding: 64px 24px 96px; }
+  .placeholder-intro { font-size: 16px; font-weight: 500; margin-bottom: 16px; }
+  .placeholder-body { font-size: 15px; color: var(--muted); line-height: 1.8; }
+{% endblock %}
+
+{% block banner %}
+<section class="page-banner">
+  <div class="page-banner-content">
+    <h1>{{ title }}</h1>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>{{ title }}</span>
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<main class="placeholder-main">
+  <p class="placeholder-intro">{{ intro }}</p>
+  <p class="placeholder-body">{{ body }}</p>
+</main>
+{% endblock %}

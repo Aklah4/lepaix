@@ -1031,14 +1031,14 @@
             <h4>Company</h4>
             <a href="/pages/about">About Us</a>
             <a href="/blog">Journal</a>
-            <a href="#">Careers</a>
+            <a href="{{ url_for('pages.placeholder', slug='careers') }}">Careers</a>
           </div>
           <div class="footer-col">
             <h4>Care</h4>
-            <a href="#">Size Guide</a>
-            <a href="#">Returns</a>
-            <a href="#">Shipping</a>
-            <a href="#">Help &amp; FAQs</a>
+            <a href="{{ url_for('pages.size_guide') }}">Size Guide</a>
+            <a href="{{ url_for('pages.placeholder', slug='returns') }}">Returns</a>
+            <a href="{{ url_for('pages.placeholder', slug='shipping') }}">Shipping</a>
+            <a href="{{ url_for('pages.faq') }}">Help &amp; FAQs</a>
           </div>
           <div class="footer-col">
             <h4>Follow</h4>
