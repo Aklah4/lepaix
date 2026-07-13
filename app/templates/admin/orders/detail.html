@@ -5,7 +5,7 @@
 <style>
   :root {
     --bg: #f7f4f0; --surface: #ffffff; --surface-alt: #f4f1ed;
-    --border: #e8e4df; --text: #1a1a18; --muted: #6b6b67;
+    --border: #e8e4df; --text: #C2255C; --muted: #6b6b67;
     --accent: #e8341a; --shadow: 0 18px 60px rgba(22,22,20,.08);
   }
   .admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 28px; min-height: calc(100vh - 100px); }
@@ -148,7 +148,7 @@
                   {% endif %}
                 </td>
                 <td>{{ item.quantity }}</td>
-                <td style="text-align:right">${{ '%.2f' | format(item.price * item.quantity) }}</td>
+                <td style="text-align:right">₦{{ '%.2f' | format(item.price * item.quantity) }}</td>
               </tr>
               {% endfor %}
             </tbody>
@@ -158,15 +158,15 @@
           <div style="margin-top:20px;max-width:280px;margin-left:auto">
             <div class="totals-row">
               <span style="color:var(--muted)">Subtotal</span>
-              <span>${{ '%.2f' | format(order.subtotal) }}</span>
+              <span>₦{{ '%.2f' | format(order.subtotal) }}</span>
             </div>
             <div class="totals-row">
               <span style="color:var(--muted)">Shipping</span>
-              <span>${{ '%.2f' | format(order.get('shipping_cost', 0)) }}</span>
+              <span>₦{{ '%.2f' | format(order.get('shipping_cost', 0)) }}</span>
             </div>
             <div class="totals-row total">
               <span>Total</span>
-              <span>${{ '%.2f' | format(order.total) }}</span>
+              <span>₦{{ '%.2f' | format(order.total) }}</span>
             </div>
           </div>
         </div>

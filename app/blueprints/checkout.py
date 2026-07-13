@@ -103,8 +103,29 @@ def index():
     session['cart'] = []
     session.modified = True
 
-    return redirect(url_for('checkout.confirmation',
+    return redirect(url_for('checkout.payment',
                             order_id=order_id, order_number=order_number))
+
+
+@checkout_bp.route('/payment')
+def payment():
+    from app.db import get_db
+    db = get_db()
+
+    order_id = request.args.get('order_id', '')
+    order_number = request.args.get('order_number', '')
+
+    total = None
+    try:
+        order = db.orders.find_one({'_id': ObjectId(order_id)})
+    except Exception:
+        order = None
+    if order:
+        total = order.get('total')
+
+    return render_template('checkout/payment.html',
+                           order_id=order_id, order_number=order_number,
+                           total=total)
 
 
 @checkout_bp.route('/confirmation')

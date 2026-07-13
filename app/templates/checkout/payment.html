@@ -1,0 +1,64 @@
+{% extends "store_base.html" %}
+{% block title %}Complete Payment — Lepaix{% endblock %}
+
+{% block head_styles %}
+  .payment-main { max-width: 620px; margin: 0 auto; padding: 80px 24px; text-align: center; }
+  .payment-icon { width: 72px; height: 72px; border-radius: 50%; background: #fff8e6; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
+  .payment-main h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 500; margin-bottom: 12px; }
+  .payment-main p { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 8px; }
+  .order-number-badge { display: inline-block; margin: 20px 0 32px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 28px; font-size: 18px; font-weight: 600; letter-spacing: .04em; }
+
+  .payment-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 28px; text-align: left; margin-bottom: 28px; }
+  .payment-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 20px; }
+  .payment-row { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+  .payment-row:last-child { border-bottom: none; }
+  .payment-row .label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .payment-row .value { font-size: 16px; font-weight: 600; text-align: right; }
+  .payment-row.amount .value { font-size: 20px; color: var(--accent); }
+  .payment-note { font-size: 13px; color: var(--muted); margin-top: 20px; text-align: left; }
+
+  .confirm-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { padding: 14px 28px; border-radius: 999px; background: var(--text); color: #fff; border: none; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+  .btn-secondary { padding: 14px 28px; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--text); text-decoration: none; font-size: 14px; }
+  .btn-primary:hover, .btn-secondary:hover { opacity: .85; }
+{% endblock %}
+
+{% block content %}
+<main class="payment-main">
+  <div class="payment-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+  </div>
+  <h1>Complete Your Payment</h1>
+  <p>Your order has been placed. Please transfer the total below to complete it.</p>
+
+  <div class="order-number-badge">{{ order_number }}</div>
+
+  <div class="payment-card">
+    <h2>Bank Transfer Details</h2>
+    <div class="payment-row">
+      <span class="label">Bank Name</span>
+      <span class="value">MONIEPOINT</span>
+    </div>
+    <div class="payment-row">
+      <span class="label">Account Name</span>
+      <span class="value">LEPAIX FASHION STORE</span>
+    </div>
+    <div class="payment-row">
+      <span class="label">Account Number</span>
+      <span class="value">8119977068</span>
+    </div>
+    {% if total is not none %}
+    <div class="payment-row amount">
+      <span class="label">Amount to Pay</span>
+      <span class="value">₦{{ '%.2f' | format(total) }}</span>
+    </div>
+    {% endif %}
+    <p class="payment-note">This transfer is in Nigerian Naira regardless of the currency shown while browsing. Please use your order number ({{ order_number }}) as the transfer reference so we can match your payment quickly.</p>
+  </div>
+
+  <div class="confirm-actions">
+    <a href="{{ url_for('checkout.confirmation', order_id=order_id, order_number=order_number) }}" class="btn-primary">I've Made Payment</a>
+    <a href="/" class="btn-secondary">Back to Home</a>
+  </div>
+</main>
+{% endblock %}

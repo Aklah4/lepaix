@@ -120,7 +120,7 @@
 
           <!-- Price + remove -->
           <div class="cart-item-price">
-            <strong>${{ '%.2f' | format(item.subtotal) }}</strong>
+            <strong>{{ item.subtotal | money }}</strong>
             <form method="post" action="{{ url_for('cart.remove') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="product_id" value="{{ item.product_id }}">
@@ -137,15 +137,15 @@
     <!-- Summary -->
     {% set item_lines = [] %}
     {% for item in cart %}
-    {% set _ = item_lines.append(item.quantity ~ 'x ' ~ item.name ~ ' - $' ~ ('%.2f' | format(item.price)) ~ ' each ($' ~ ('%.2f' | format(item.subtotal)) ~ ')') %}
+    {% set _ = item_lines.append(item.quantity ~ 'x ' ~ item.name ~ ' - ' ~ (item.price | money) ~ ' each (' ~ (item.subtotal | money) ~ ')') %}
     {% endfor %}
-    {% set wa_message = 'Hi Lepaix! I\'d like to continue my order on WhatsApp.\n\nItems:\n' ~ (item_lines | join('\n')) ~ '\n\nTotal: $' ~ ('%.2f' | format(cart_total)) %}
+    {% set wa_message = 'Hi Lepaix! I\'d like to continue my order on WhatsApp.\n\nItems:\n' ~ (item_lines | join('\n')) ~ '\n\nTotal: ' ~ (cart_total | money) %}
     <div class="cart-summary">
       <h2>Order Summary</h2>
-      <div class="summary-row"><span class="label">Subtotal</span><span>${{ '%.2f' | format(cart_total) }}</span></div>
+      <div class="summary-row"><span class="label">Subtotal</span><span>{{ cart_total | money }}</span></div>
       <div class="summary-row"><span class="label">Shipping</span><span>Free</span></div>
       <div class="summary-divider"></div>
-      <div class="summary-total"><span>Total</span><span>${{ '%.2f' | format(cart_total) }}</span></div>
+      <div class="summary-total"><span>Total</span><span>{{ cart_total | money }}</span></div>
       <a href="{{ url_for('checkout.index') }}" class="checkout-btn">Proceed to Checkout</a>
       <a href="{{ url_for('products.index') }}" class="continue-link">Continue shopping</a>
       <a href="https://wa.me/2348119977068?text={{ wa_message | urlencode }}"

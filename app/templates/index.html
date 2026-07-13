@@ -21,7 +21,7 @@
       :root {
         --bg: #faf8f5;
         --surface: #ffffff;
-        --text: #1a1a1a;
+        --text: #C2255C;
         --accent: #c9897a;
         --muted: #9a8f8a;
         --border: #e8e0da;
@@ -116,6 +116,30 @@
         display: flex;
         align-items: center;
         gap: 22px;
+      }
+
+      .currency-select {
+        font-size: 12px;
+        font-weight: 400;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 999px;
+        padding: 5px 22px 5px 12px;
+        margin-right: 10px;
+        background: transparent
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23ffffff'/%3E%3C/svg%3E")
+          no-repeat right 10px center;
+        appearance: none;
+        cursor: pointer;
+        font-family: inherit;
+        transition: color 0.2s, border-color 0.2s;
+      }
+      .site-header.scrolled .currency-select {
+        color: var(--text);
+        border-color: var(--border);
+        background: transparent
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b67'/%3E%3C/svg%3E")
+          no-repeat right 10px center;
       }
 
       .header-icons a {
@@ -577,7 +601,7 @@
         font-weight: 300;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #fff;
+        color: #C2255C;
         margin-bottom: 14px;
       }
       .footer-tagline {
@@ -604,7 +628,7 @@
         transition: color 0.15s;
       }
       .footer-col a:hover {
-        color: #fff;
+        color: #C2255C;
       }
       .footer-bottom {
         display: flex;
@@ -720,6 +744,11 @@
         .header-icons a[aria-label="Wishlist"] {
           display: none;
         }
+        .currency-select {
+          font-size: 11px;
+          padding: 4px 18px 4px 10px;
+          margin-right: 4px;
+        }
         .hero-content {
           padding: 0 28px 56px;
         }
@@ -787,6 +816,10 @@
           <a href="/pages/about">About</a>
         </nav>
         <div class="header-right">
+          <select class="currency-select" aria-label="Currency" onchange="window.location.href=this.value">
+            <option value="{{ url_for('currency.set_currency', code='NGN') }}" {% if session.get('currency', 'NGN') == 'NGN' %}selected{% endif %}>₦ NGN</option>
+            <option value="{{ url_for('currency.set_currency', code='USD') }}" {% if session.get('currency', 'NGN') == 'USD' %}selected{% endif %}>$ USD</option>
+          </select>
           <div class="header-icons">
             <button id="search-btn" aria-label="Search">
               <svg

@@ -223,7 +223,7 @@
         <div class="product-cat-label">{{ p.category }}</div>
         {% endif %}
         <div class="product-name">{{ p.name }}</div>
-        <div class="product-price">${{ '%.2f' | format(p.price) }}</div>
+        <div class="product-price">{{ p.price | money }}</div>
       </div>
     </a>
     {% endfor %}

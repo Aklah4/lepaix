@@ -107,20 +107,11 @@ no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
   </div>
   <div class="products-header-deco" aria-hidden="true">
     <div class="deco-swatches">
-      <div class="deco-swatch" style="background: #b89060"></div>
-      <div
-        class="deco-swatch"
-        style="background: #c4843c; transform: translateY(-14px)"
-      ></div>
-      <div
-        class="deco-swatch"
-        style="background: #e8b8c0; transform: translateY(-6px)"
-      ></div>
-      <div
-        class="deco-swatch"
-        style="background: #9098a8; transform: translateY(-3px)"
-      ></div>
-      <div class="deco-swatch" style="background: #e0d4b0"></div>
+      <div class="deco-swatch" style="background: #C2255C"></div>
+      <div class="deco-swatch" style="background: #E3D2AE"></div>
+      <div class="deco-swatch" style="background: #F2BFC9"></div>
+      <div class="deco-swatch" style="background: #C2255C"></div>
+      <div class="deco-swatch" style="background: #E3D2AE"></div>
     </div>
   </div>
 </section>
@@ -218,7 +209,7 @@ no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
         <div class="product-cat-label">{{ p.category }}</div>
         {% endif %}
         <div class="product-name">{{ p.name }}</div>
-        <div class="product-price">${{ '%.2f' | format(p.price) }}</div>
+        <div class="product-price">{{ p.price | money }}</div>
       </div>
     </a>
     {% endfor %} {% else %}

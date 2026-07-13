@@ -86,7 +86,7 @@
           {% endif %}
         </div>
         <div class="search-card-name">{{ p.name }}</div>
-        <div class="search-card-price">${{ '%.2f' | format(p.price) }}</div>
+        <div class="search-card-price">{{ p.price | money }}</div>
       </a>
       {% endfor %}
     </div>

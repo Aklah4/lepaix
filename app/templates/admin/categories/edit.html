@@ -90,7 +90,7 @@
             {% endif %}
           </div>
           <span class="cp-name">{{ p.name }}</span>
-          <span class="cp-price">${{ '%.2f' | format(p.price) }}</span>
+          <span class="cp-price">₦{{ '%.2f' | format(p.price) }}</span>
           <form method="post"
                 action="{{ url_for('admin_categories.remove_product', category_id=category._id, product_id=p._id) }}"
                 onsubmit="return confirm('Remove {{ p.name }} from this category?');">
@@ -123,7 +123,7 @@
 
 {% block head %}
 <style>
-  :root { --bg:#f7f4f0;--surface:#fff;--border:#e8e4df;--text:#1a1a18;--muted:#6b6b67;--accent:#e8341a; }
+  :root { --bg:#f7f4f0;--surface:#fff;--border:#e8e4df;--text:#C2255C;--muted:#6b6b67;--accent:#e8341a; }
   .admin-shell { display:grid;grid-template-columns:260px 1fr;gap:28px;min-height:calc(100vh - 100px); }
   .admin-sidebar { background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 24px;display:flex;flex-direction:column;gap:28px; }
   .brand { font-family:'Playfair Display',serif;font-size:24px; }

@@ -64,6 +64,27 @@ def create_app():
             return path
         return url_for('static', filename=f'uploads/{path}')
 
+    DEFAULT_NGN_PER_USD = 1500
+
+    def _ngn_per_usd():
+        from flask import g
+        if not hasattr(g, '_ngn_per_usd'):
+            from app.db import get_db
+            settings = get_db().settings.find_one({'_id': 'site'}) or {}
+            g._ngn_per_usd = settings.get('ngn_per_usd') or DEFAULT_NGN_PER_USD
+        return g._ngn_per_usd
+
+    @app.template_filter('money')
+    def money_filter(amount):
+        from flask import session
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            amount = 0.0
+        if session.get('currency', 'NGN') == 'USD':
+            return f"${amount / _ngn_per_usd():,.2f}"
+        return f"₦{amount:,.2f}"
+
     # Register blueprints
     from app.blueprints.admin.auth import admin_auth_bp, admin_bp
     from app.blueprints.admin.products import admin_products_bp
@@ -78,6 +99,7 @@ def create_app():
     from app.blueprints.cart import cart_bp
     from app.blueprints.checkout import checkout_bp
     from app.blueprints.wishlist import wishlist_bp
+    from app.blueprints.currency import currency_bp
 
     app.register_blueprint(admin_auth_bp)
     app.register_blueprint(admin_bp)
@@ -93,6 +115,7 @@ def create_app():
     app.register_blueprint(cart_bp)
     app.register_blueprint(checkout_bp)
     app.register_blueprint(wishlist_bp)
+    app.register_blueprint(currency_bp)
 
     @app.context_processor
     def inject_globals():

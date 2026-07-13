@@ -35,6 +35,24 @@ def index():
             flash('Banner image removed.', 'success')
             return redirect(url_for('admin_settings.index'))
 
+        if action == 'save_rate':
+            rate_s = request.form.get('ngn_per_usd', '').strip()
+            try:
+                rate = float(rate_s)
+                if rate <= 0:
+                    raise ValueError
+            except ValueError:
+                flash('Exchange rate must be a positive number.', 'error')
+                return redirect(url_for('admin_settings.index'))
+
+            db.settings.update_one(
+                {'_id': 'site'},
+                {'$set': {'ngn_per_usd': rate}},
+                upsert=True,
+            )
+            flash('Exchange rate updated.', 'success')
+            return redirect(url_for('admin_settings.index'))
+
         file = request.files.get('banner_image')
         if file and file.filename and _allowed(file.filename):
             delete_image(settings.get('banner_image'))

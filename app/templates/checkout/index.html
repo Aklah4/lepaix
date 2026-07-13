@@ -145,15 +145,15 @@
                 {% if item.size %} · {{ item.size }}{% endif %}
               </div>
             </div>
-            <div class="summary-item-price">${{ '%.2f' | format(item.subtotal) }}</div>
+            <div class="summary-item-price">{{ item.subtotal | money }}</div>
           </div>
           {% endfor %}
 
           <div class="totals-block">
-            <div class="totals-row"><span class="label">Subtotal</span><span>${{ '%.2f' | format(subtotal) }}</span></div>
+            <div class="totals-row"><span class="label">Subtotal</span><span>{{ subtotal | money }}</span></div>
             <div class="totals-row"><span class="label">Shipping</span><span>Free</span></div>
             <div class="totals-divider"></div>
-            <div class="totals-total"><span>Total</span><span>${{ '%.2f' | format(total) }}</span></div>
+            <div class="totals-total"><span>Total</span><span>{{ total | money }}</span></div>
           </div>
 
           <button type="submit" class="place-order-btn">Place Order</button>

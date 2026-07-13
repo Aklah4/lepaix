@@ -194,7 +194,7 @@
       <div class="product-category">{{ product.get('category', 'Collection') }}</div>
       <h1>{{ product.name }}</h1>
       <div class="product-info-price">
-        ${{ '%.2f' | format(product.price) }}
+        {{ product.price | money }}
       </div>
 
       {% if product.get('description') %}
@@ -273,7 +273,7 @@
         {% endif %}
       </div>
       <div class="product-card-name">{{ p.name }}</div>
-      <div class="product-card-price">${{ '%.2f' | format(p.price) }}</div>
+      <div class="product-card-price">{{ p.price | money }}</div>
     </a>
     {% endfor %}
   </div>
