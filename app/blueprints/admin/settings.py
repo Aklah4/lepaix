@@ -53,6 +53,31 @@ def index():
             flash('Exchange rate updated.', 'success')
             return redirect(url_for('admin_settings.index'))
 
+        if action == 'remove_logo':
+            delete_image(settings.get('site_logo'))
+            db.settings.update_one(
+                {'_id': 'site'},
+                {'$unset': {'site_logo': ''}},
+                upsert=True,
+            )
+            flash('Site logo removed.', 'success')
+            return redirect(url_for('admin_settings.index'))
+
+        if action == 'save_logo':
+            file = request.files.get('site_logo')
+            if file and file.filename and _allowed(file.filename):
+                delete_image(settings.get('site_logo'))
+                url = upload_image(file, folder='lepaix/settings')
+                db.settings.update_one(
+                    {'_id': 'site'},
+                    {'$set': {'site_logo': url}},
+                    upsert=True,
+                )
+                flash('Site logo updated.', 'success')
+            else:
+                flash('Please select a valid image file (PNG, JPG, WEBP, GIF).', 'error')
+            return redirect(url_for('admin_settings.index'))
+
         file = request.files.get('banner_image')
         if file and file.filename and _allowed(file.filename):
             delete_image(settings.get('banner_image'))

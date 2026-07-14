@@ -13,7 +13,7 @@
         --bg: #f7f4f0;
         --surface: #fff;
         --border: #e8e4df;
-        --text: #C2255C;
+        --text: #8B0E48;
         --muted: #6b6b67;
         --accent: #e8341a;
         --dark: #111;
@@ -52,6 +52,13 @@
         font-size: 22px;
         font-weight: 500;
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+      }
+      .site-brand img {
+        height: 42px;
+        width: auto;
+        display: block;
       }
 
       .main-nav {
@@ -324,7 +331,7 @@
       .footer-col h4 {
         font-size: 14px;
         font-weight: 500;
-        color: #C2255C;
+        color: #8B0E48;
         margin-bottom: 16px;
       }
 
@@ -336,7 +343,7 @@
         transition: color 0.15s;
       }
 
-      .footer-col a:hover { color: #C2255C; }
+      .footer-col a:hover { color: #8B0E48; }
 
       .footer-bottom {
         display: flex;
@@ -351,8 +358,16 @@
       .footer-brand {
         font-family: 'Playfair Display', serif;
         font-size: 18px;
-        color: #C2255C;
+        color: #8B0E48;
         margin-bottom: 4px;
+      }
+      .footer-brand img {
+        height: 40px;
+        width: auto;
+        display: block;
+        background: #fff;
+        border-radius: 8px;
+        padding: 4px 10px;
       }
 
       .footer-copy { font-size: 12px; color: rgba(255,255,255,0.4); }
@@ -514,7 +529,9 @@
     <!-- HEADER -->
     <header class="site-header">
       <div class="header-inner">
-        <a href="/" class="site-brand">Lepaix</a>
+        <a href="/" class="site-brand">
+          {% if site_logo %}<img src="{{ site_logo | image_url }}" alt="Lepaix" />{% else %}Lepaix{% endif %}
+        </a>
         <nav class="main-nav">
           <a href="/" {% if request.endpoint == 'index.index' %}class="active"{% endif %}>Home</a>
           <a href="/products?gender=Women"
@@ -634,7 +651,7 @@
         </div>
         <div class="footer-bottom">
           <div>
-            <div class="footer-brand">Lepaix</div>
+            <div class="footer-brand">{% if site_logo %}<img src="{{ site_logo | image_url }}" alt="Lepaix" />{% else %}Lepaix{% endif %}</div>
             <div class="footer-copy">©{{ current_year or '2026' }} Lepaix. All rights reserved</div>
           </div>
           <div class="footer-payments">

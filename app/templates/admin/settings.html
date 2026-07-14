@@ -5,7 +5,7 @@
 <style>
   :root {
     --bg: #f7f4f0; --surface: #ffffff; --border: #e8e4df;
-    --text: #C2255C; --muted: #6b6b67; --accent: #e8341a;
+    --text: #8B0E48; --muted: #6b6b67; --accent: #e8341a;
     --shadow: 0 18px 60px rgba(22,22,20,.08);
   }
   .admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 28px; min-height: calc(100vh - 100px); }
@@ -87,6 +87,44 @@
       {% endfor %}
     {% endwith %}
 
+    <!-- Site logo -->
+    <div class="settings-card">
+      <h2>Site Logo</h2>
+      <p class="desc">Appears in the header and footer across the whole site, replacing the "Lepaix" text wordmark. PNG with a transparent background works best.</p>
+
+      <!-- Current logo preview -->
+      <div class="banner-preview" style="height:140px;">
+        {% if settings.get('site_logo') %}
+        <img src="{{ settings.site_logo | image_url }}"
+             alt="Current site logo" id="logo-preview-img" style="object-fit:contain;background:#fff;">
+        <form method="post" style="margin:0">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="remove_logo">
+          <button class="remove-btn" type="submit"
+                  onclick="return confirm('Remove the current site logo?')">Remove</button>
+        </form>
+        {% else %}
+        <div class="banner-placeholder" id="logo-preview-img">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          No logo set
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Upload form -->
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="save_logo">
+        <input type="file" name="site_logo" id="logo-file" accept="image/*">
+        <div class="upload-zone" id="logo-upload-zone" onclick="document.getElementById('logo-file').click()">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>Drop an image here or <span>browse</span></p>
+        </div>
+        <div class="file-chosen" id="logo-file-chosen" style="display:none"></div>
+        <button type="submit" class="btn-save">Save Logo</button>
+      </form>
+    </div>
+
     <!-- Banner image -->
     <div class="settings-card">
       <h2>Landing Page Banner Image</h2>
@@ -153,41 +191,46 @@
 
 {% block scripts %}
 <script>
-  const fileInput = document.getElementById('banner-file');
-  const zone = document.getElementById('upload-zone');
-  const chosen = document.getElementById('file-chosen');
-  const previewImg = document.getElementById('banner-preview-img');
+  function wireUploadZone(fileInputId, zoneId, chosenId, previewImgId, fit) {
+    const fileInput = document.getElementById(fileInputId);
+    const zone = document.getElementById(zoneId);
+    const chosen = document.getElementById(chosenId);
+    const previewImg = document.getElementById(previewImgId);
 
-  fileInput.addEventListener('change', function () {
-    if (!this.files.length) return;
-    const file = this.files[0];
-    chosen.textContent = 'Selected: ' + file.name;
-    chosen.style.display = 'block';
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      if (previewImg.tagName === 'IMG') {
-        previewImg.src = e.target.result;
-      } else {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-        previewImg.replaceWith(img);
+    fileInput.addEventListener('change', function () {
+      if (!this.files.length) return;
+      const file = this.files[0];
+      chosen.textContent = 'Selected: ' + file.name;
+      chosen.style.display = 'block';
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        if (previewImg.tagName === 'IMG') {
+          previewImg.src = e.target.result;
+        } else {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.cssText = 'width:100%;height:100%;object-fit:' + fit + ';';
+          previewImg.replaceWith(img);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', function () { zone.classList.remove('drag'); });
+    zone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      zone.classList.remove('drag');
+      if (e.dataTransfer.files.length) {
+        const dt = new DataTransfer();
+        dt.items.add(e.dataTransfer.files[0]);
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change'));
       }
-    };
-    reader.readAsDataURL(file);
-  });
+    });
+  }
 
-  zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('drag'); });
-  zone.addEventListener('dragleave', function () { zone.classList.remove('drag'); });
-  zone.addEventListener('drop', function (e) {
-    e.preventDefault();
-    zone.classList.remove('drag');
-    if (e.dataTransfer.files.length) {
-      const dt = new DataTransfer();
-      dt.items.add(e.dataTransfer.files[0]);
-      fileInput.files = dt.files;
-      fileInput.dispatchEvent(new Event('change'));
-    }
-  });
+  wireUploadZone('logo-file', 'logo-upload-zone', 'logo-file-chosen', 'logo-preview-img', 'contain');
+  wireUploadZone('banner-file', 'upload-zone', 'file-chosen', 'banner-preview-img', 'cover');
 </script>
 {% endblock %}

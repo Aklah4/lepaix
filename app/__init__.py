@@ -120,12 +120,15 @@ def create_app():
     @app.context_processor
     def inject_globals():
         from flask import session
+        from app.db import get_db
         cart     = session.get('cart', [])
         wishlist = session.get('wishlist', [])
+        settings = get_db().settings.find_one({'_id': 'site'}) or {}
         return {
             'cart_count':    sum(i.get('quantity', 1) for i in cart),
             'wishlist_ids':  wishlist,
             'wishlist_count': len(wishlist),
+            'site_logo':     settings.get('site_logo'),
         }
 
     return app

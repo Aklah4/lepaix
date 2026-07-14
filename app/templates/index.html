@@ -21,7 +21,7 @@
       :root {
         --bg: #faf8f5;
         --surface: #ffffff;
-        --text: #C2255C;
+        --text: #8B0E48;
         --accent: #c9897a;
         --muted: #9a8f8a;
         --border: #e8e0da;
@@ -79,9 +79,19 @@
         text-transform: uppercase;
         color: #fff;
         transition: color 0.35s;
+        display: flex;
+        align-items: center;
       }
       .site-header.scrolled .site-brand {
         color: var(--text);
+      }
+      .site-brand img {
+        height: 40px;
+        width: auto;
+        display: block;
+        background: #fff;
+        border-radius: 8px;
+        padding: 4px 10px;
       }
 
       .main-nav {
@@ -601,8 +611,16 @@
         font-weight: 300;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #C2255C;
+        color: #8B0E48;
         margin-bottom: 14px;
+      }
+      .footer-brand-name img {
+        height: 44px;
+        width: auto;
+        display: block;
+        background: #fff;
+        border-radius: 8px;
+        padding: 4px 10px;
       }
       .footer-tagline {
         font-size: 12px;
@@ -628,7 +646,7 @@
         transition: color 0.15s;
       }
       .footer-col a:hover {
-        color: #C2255C;
+        color: #8B0E48;
       }
       .footer-bottom {
         display: flex;
@@ -808,7 +826,9 @@
     <!-- ── NAVIGATION ── -->
     <header class="site-header" id="site-header">
       <div class="header-inner">
-        <a href="/" class="site-brand">Lepaix</a>
+        <a href="/" class="site-brand">
+          {% if site_logo %}<img src="{{ site_logo | image_url }}" alt="Lepaix" />{% else %}Lepaix{% endif %}
+        </a>
         <nav class="main-nav">
           <a href="/">Home</a>
           <a href="/products">Collection</a>
@@ -1021,7 +1041,7 @@
       <div class="footer-inner">
         <div class="footer-grid">
           <div>
-            <div class="footer-brand-name">Lepaix</div>
+            <div class="footer-brand-name">{% if site_logo %}<img src="{{ site_logo | image_url }}" alt="Lepaix" />{% else %}Lepaix{% endif %}</div>
             <p class="footer-tagline">
               Premium fashion and beauty, thoughtfully crafted for the modern
               wardrobe.
