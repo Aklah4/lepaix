@@ -241,17 +241,41 @@
   uploadZone.addEventListener('drop', e => {
     e.preventDefault();
     uploadZone.classList.remove('drag-over');
-    const dt = new DataTransfer();
-    [...fileInput.files, ...e.dataTransfer.files].forEach(f => dt.items.add(f));
-    fileInput.files = dt.files;
-    renderPreviews();
+    addFiles(e.dataTransfer.files);
   });
 
-  fileInput.addEventListener('change', renderPreviews);
+  // Browsing again appends to the current selection instead of replacing it.
+  fileInput.addEventListener('change', e => {
+    const picked = [...e.target.files];
+    setFiles([...currentFiles, ...picked]);
+  });
+
+  // Remove an individual file before submitting.
+  previewGrid.addEventListener('click', e => {
+    const btn = e.target.closest('.preview-remove');
+    if (!btn) return;
+    const idx = Number(btn.dataset.index);
+    setFiles(currentFiles.filter((_, i) => i !== idx));
+  });
+
+  // Track the selection separately so drag-drop + repeated browsing accumulate.
+  let currentFiles = [];
+
+  function addFiles(fileList) {
+    setFiles([...currentFiles, ...fileList]);
+  }
+
+  function setFiles(files) {
+    currentFiles = files;
+    const dt = new DataTransfer();
+    currentFiles.forEach(f => dt.items.add(f));
+    fileInput.files = dt.files;
+    renderPreviews();
+  }
 
   function renderPreviews() {
     previewGrid.innerHTML = '';
-    [...fileInput.files].forEach((file, i) => {
+    currentFiles.forEach((file, i) => {
       const reader = new FileReader();
       reader.onload = e => {
         const div = document.createElement('div');

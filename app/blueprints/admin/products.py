@@ -237,8 +237,8 @@ def delete(product_id):
 
 
 # ── Delete single image ───────────────────────────────────────────────────────
-@admin_products_bp.route('/<product_id>/images/<filename>/delete', methods=['POST'])
-def delete_image(product_id, filename):
+@admin_products_bp.route('/<product_id>/images/delete', methods=['POST'])
+def delete_image(product_id):
     guard = _auth_required()
     if guard:
         return guard
@@ -249,7 +249,10 @@ def delete_image(product_id, filename):
     except Exception:
         return redirect(url_for('admin_products.index'))
 
-    db.products.update_one({'_id': oid}, {'$pull': {'images': filename}})
-    _delete_image(filename)
+    image = request.form.get('image', '').strip()
+    if image:
+        db.products.update_one({'_id': oid}, {'$pull': {'images': image}})
+        _delete_image(image)
+        flash('Image removed.', 'success')
 
     return redirect(url_for('admin_products.edit', product_id=product_id))
