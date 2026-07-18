@@ -251,8 +251,16 @@ def delete_image(product_id):
 
     image = request.form.get('image', '').strip()
     if image:
-        db.products.update_one({'_id': oid}, {'$pull': {'images': image}})
-        _delete_image(image)
-        flash('Image removed.', 'success')
+        product = db.products.find_one({'_id': oid})
+        images = list(product.get('images', [])) if product else []
+        if image in images:
+            # Remove only a single occurrence — never every matching entry —
+            # so deleting one image can't wipe the whole gallery.
+            images.remove(image)
+            db.products.update_one({'_id': oid}, {'$set': {'images': images}})
+            # Only destroy the Cloudinary asset if no other entry still uses it.
+            if image not in images:
+                _delete_image(image)
+            flash('Image removed.', 'success')
 
     return redirect(url_for('admin_products.edit', product_id=product_id))
