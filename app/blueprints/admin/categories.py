@@ -2,7 +2,7 @@ from bson import ObjectId
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.db import get_db
-from app.uploader import delete_image, upload_image
+from app.uploader import delete_image, upload_image_safe
 
 admin_categories_bp = Blueprint('admin_categories', __name__, url_prefix='/admin/categories')
 
@@ -73,7 +73,9 @@ def add():
         image = ''
         file = request.files.get('image')
         if file and file.filename and _allowed(file.filename):
-            image = upload_image(file, folder='lepaix/categories')
+            image = upload_image_safe(file, folder='lepaix/categories') or ''
+            if not image:
+                flash('Could not upload the image - the category was saved without it.', 'error')
 
         db.categories.insert_one({
             'name':  name,
@@ -133,8 +135,12 @@ def edit(category_id):
         image = category.get('image', '')
         file = request.files.get('image')
         if file and file.filename and _allowed(file.filename):
-            delete_image(image)
-            image = upload_image(file, folder='lepaix/categories')
+            new_url = upload_image_safe(file, folder='lepaix/categories')
+            if new_url:
+                delete_image(image)
+                image = new_url
+            else:
+                flash('Could not upload the new image - kept the previous one.', 'error')
 
         db.categories.update_one({'_id': oid}, {'$set': {
             'name':  name,

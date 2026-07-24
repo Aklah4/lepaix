@@ -1,0 +1,12 @@
+{# Sale-aware price. When on sale: current price + struck-through original.
+   `size` picks a scale: 'card' (listings) or 'detail' (product page). #}
+{% macro price_tag(p, size='card') %}
+  {% if is_on_sale(p) %}
+  <span class="price price--sale price--{{ size }}">
+    <span class="price-now">{{ effective_price(p) | money }}</span>
+    <span class="price-was">{{ p.price | money }}</span>
+  </span>
+  {% else %}
+  <span class="price price--{{ size }}">{{ p.price | money }}</span>
+  {% endif %}
+{% endmacro %}

@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, request, url_for, flash, session
 from bson import ObjectId
+from app.emails import send_order_emails
 from app.extensions import limiter
+from app.pricing import effective_price, is_on_sale
 
 checkout_bp = Blueprint('checkout', __name__, url_prefix='/checkout')
 
@@ -36,15 +38,18 @@ def index():
         except Exception:
             product = None
         if product:
+            unit_price = effective_price(product)
             enriched.append({
                 'product_id': item['product_id'],
                 'product_name': product['name'],
-                'price': product['price'],
+                'price': unit_price,
                 'size': item.get('size', ''),
                 'color': item.get('color', ''),
                 'quantity': item['quantity'],
                 'image': product.get('images', [None])[0],
-                'subtotal': product['price'] * item['quantity'],
+                'subtotal': unit_price * item['quantity'],
+                # Record the markdown so the order shows what was saved.
+                'original_price': product['price'] if is_on_sale(product) else None,
             })
 
     if not enriched:
@@ -99,6 +104,9 @@ def index():
     result = db.orders.insert_one(order_doc)
     order_id = str(result.inserted_id)
     order_number = order_doc['order_number']
+
+    # Confirmation to the customer + notification to the vendor. Never raises.
+    send_order_emails(order_doc)
 
     session['cart'] = []
     session.modified = True

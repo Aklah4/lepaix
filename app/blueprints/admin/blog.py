@@ -4,7 +4,7 @@ from bson import ObjectId
 import nh3
 from flask import (Blueprint, render_template, redirect, request,
                    url_for, flash, session)
-from app.uploader import delete_image, upload_image
+from app.uploader import delete_image, upload_image_safe
 
 admin_blog_bp = Blueprint('admin_blog', __name__, url_prefix='/admin/blog')
 
@@ -137,7 +137,9 @@ def add():
     cover_image = None
     file = request.files.get('cover_image')
     if file and file.filename and _allowed(file.filename):
-        cover_image = upload_image(file, folder='lepaix/blog')
+        cover_image = upload_image_safe(file, folder='lepaix/blog')
+        if not cover_image:
+            flash('Could not upload the cover image - the post was saved without it.', 'error')
 
     now = datetime.now(timezone.utc)
     doc = {
@@ -204,8 +206,12 @@ def edit(post_id):
     cover_image = post.get('cover_image')
     file = request.files.get('cover_image')
     if file and file.filename and _allowed(file.filename):
-        delete_image(cover_image)
-        cover_image = upload_image(file, folder='lepaix/blog')
+        new_url = upload_image_safe(file, folder='lepaix/blog')
+        if new_url:
+            delete_image(cover_image)
+            cover_image = new_url
+        else:
+            flash('Could not upload the new cover image - kept the previous one.', 'error')
 
     updates = {
         'title': title,

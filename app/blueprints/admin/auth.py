@@ -100,20 +100,35 @@ def dashboard():
         return redirect(url_for('admin_auth.login'))
 
     from app.db import get_db
+    from app.reporting import parse_day, day_window_utc, neighbours, today
     db = get_db()
 
     total_products     = db.products.count_documents({})
     published_products = db.products.count_documents({'status': 'published'})
     draft_products     = db.products.count_documents({'status': 'draft'})
 
-    # Orders
-    total_orders   = db.orders.count_documents({})
-    pending_orders = db.orders.count_documents({'status': 'pending'})
-    revenue_agg = list(db.orders.aggregate([
+    # ── Daily revenue/orders (resets each business day) ──────────────────────
+    day = parse_day(request.args.get('date'))
+    day_start, day_end = day_window_utc(day)
+    prev_day, next_day = neighbours(day)
+    is_today = (day == today())
+
+    day_filter = {'created_at': {'$gte': day_start, '$lt': day_end}}
+    day_orders   = db.orders.count_documents(day_filter)
+    pending_day  = db.orders.count_documents({**day_filter, 'status': 'pending'})
+    day_rev_agg = list(db.orders.aggregate([
+        {'$match': {**day_filter, 'status': {'$nin': ['cancelled']}}},
+        {'$group': {'_id': None, 'total': {'$sum': '$total'}}},
+    ]))
+    day_revenue = day_rev_agg[0]['total'] if day_rev_agg else 0.0
+
+    # ── All-time totals (kept visible beneath the daily figures) ─────────────
+    total_orders  = db.orders.count_documents({})
+    all_rev_agg = list(db.orders.aggregate([
         {'$match': {'status': {'$nin': ['cancelled']}}},
         {'$group': {'_id': None, 'total': {'$sum': '$total'}}},
     ]))
-    total_revenue = revenue_agg[0]['total'] if revenue_agg else 0.0
+    total_revenue = all_rev_agg[0]['total'] if all_rev_agg else 0.0
 
     # Low-stock products
     low_stock = list(
@@ -124,13 +139,13 @@ def dashboard():
     for p in low_stock:
         p['_id'] = str(p['_id'])
 
-    # Recent orders
-    recent_orders = list(
-        db.orders.find()
+    # Orders placed on the selected day (so history navigation is meaningful)
+    day_order_list = list(
+        db.orders.find(day_filter)
                  .sort('created_at', -1)
-                 .limit(5)
+                 .limit(8)
     )
-    for o in recent_orders:
+    for o in day_order_list:
         o['_id'] = str(o['_id'])
 
     return render_template(
@@ -139,10 +154,17 @@ def dashboard():
         total_products=total_products,
         published_products=published_products,
         draft_products=draft_products,
+        day=day,
+        is_today=is_today,
+        prev_day=prev_day.isoformat(),
+        next_day=next_day.isoformat() if next_day else None,
+        max_day=today().isoformat(),
+        day_orders=day_orders,
+        pending_day=pending_day,
+        day_revenue=day_revenue,
         total_orders=total_orders,
-        pending_orders=pending_orders,
         total_revenue=total_revenue,
         low_stock=low_stock,
-        recent_orders=recent_orders,
+        recent_orders=day_order_list,
     )
 

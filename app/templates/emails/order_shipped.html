@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Your Lepaix order {{ order.order_number }} has shipped</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f7f4f0;">
+    <!-- Preheader: shown in the inbox list, hidden in the body -->
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all;">
+      Order {{ order.order_number }} is on its way.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background-color:#f7f4f0; margin:0; padding:0;">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+                 style="width:600px; max-width:100%; background-color:#ffffff; border:1px solid #e8e4df;">
+
+            <!-- Masthead -->
+            <tr>
+              <td align="center" style="padding:36px 32px 28px 32px; border-bottom:1px solid #e8e4df;">
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:26px; font-weight:normal; letter-spacing:3px; color:#8B0E48; text-transform:uppercase;">
+                  Lepaix
+                </div>
+              </td>
+            </tr>
+
+            <!-- Heading -->
+            <tr>
+              <td style="padding:40px 32px 8px 32px;">
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#8B0E48; padding-bottom:10px;">
+                  On its way
+                </div>
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:28px; line-height:34px; color:#8B0E48;">
+                  Your order has shipped{% if customer.name %}, {{ customer.name.split(' ')[0] }}{% endif %}.
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 28px 32px;">
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:15px; line-height:24px; color:#6b6b67;">
+                  Order {{ order.order_number }} is on its way to you. Everything below
+                  is in this shipment.
+                </div>
+              </td>
+            </tr>
+
+            {% if order.tracking_number %}
+            <!-- Tracking -->
+            <tr>
+              <td style="padding:0 32px 32px 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                       style="background-color:#f7f4f0;">
+                  <tr>
+                    <td style="padding:18px 20px;">
+                      <div style="font-family:Helvetica,Arial,sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#6b6b67; padding-bottom:6px;">
+                        Tracking{% if order.carrier %} &middot; {{ order.carrier }}{% endif %}
+                      </div>
+                      <div style="font-family:Georgia,'Times New Roman',serif; font-size:20px; color:#8B0E48;">
+                        {{ order.tracking_number }}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+
+            <!-- Items -->
+            <tr>
+              <td style="padding:0 32px;">
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#6b6b67; padding-bottom:12px; border-bottom:1px solid #e8e4df;">
+                  In this shipment
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  {% for item in order['items'] %}
+                  <tr>
+                    <td style="padding:16px 0; border-bottom:1px solid #e8e4df;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td valign="top" style="font-family:Helvetica,Arial,sans-serif; font-size:15px; line-height:22px; color:#8B0E48;">
+                            {{ item.product_name }}
+                            {% set line = variant(item) %}
+                            {% if line %}
+                            <div style="font-family:Helvetica,Arial,sans-serif; font-size:13px; line-height:20px; color:#6b6b67; padding-top:4px;">
+                              {{ line }}
+                            </div>
+                            {% endif %}
+                          </td>
+                          <td valign="top" align="right" width="60"
+                              style="font-family:Helvetica,Arial,sans-serif; font-size:14px; line-height:22px; color:#6b6b67; white-space:nowrap;">
+                            Qty {{ item.quantity }}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+
+            <!-- Shipping address -->
+            <tr>
+              <td style="padding:36px 32px 0 32px;">
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#6b6b67; padding-bottom:12px; border-bottom:1px solid #e8e4df;">
+                  Shipping to
+                </div>
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:14px; line-height:24px; color:#8B0E48; padding-top:14px;">
+                  {{ customer.name }}<br />
+                  {{ customer.address }}<br />
+                  {{ customer.city }}{% if customer.country %}, {{ customer.country }}{% endif %}
+                  {% if customer.phone %}<br />{{ customer.phone }}{% endif %}
+                </div>
+              </td>
+            </tr>
+
+            <!-- Sign-off -->
+            <tr>
+              <td style="padding:36px 32px 40px 32px;">
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:16px; line-height:26px; color:#8B0E48; font-style:italic;">
+                  With thanks,<br />Lepaix
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" style="padding:24px 32px 28px 32px; background-color:#111111;">
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:15px; letter-spacing:3px; text-transform:uppercase; color:#ffffff; padding-bottom:8px;">
+                  Lepaix
+                </div>
+                <div style="font-family:Helvetica,Arial,sans-serif; font-size:11px; line-height:18px; color:#8f8f8b;">
+                  Shipping update for order {{ order.order_number }}.<br />
+                  Questions? Just reply to this email.
+                </div>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -61,11 +61,17 @@
             </div>
 
             <div class="field">
+              <label for="sale_price">Sale price (₦)</label>
+              <input type="number" id="sale_price" name="sale_price" step="0.01" min="0" placeholder="Leave blank if not on sale" />
+              <p class="field-hint">When set below the price, the product shows as on sale — the old price is struck through and customers are charged this amount.</p>
+            </div>
+
+            <div class="field">
               <label for="category">Category</label>
               <select id="category" name="category">
                 <option value="">No category</option>
                 {% for cat in categories %}
-                <option value="{{ cat }}">{{ cat }}</option>
+                <option value="{{ cat }}" data-footwear="{{ 1 if cat in footwear_categories else 0 }}">{{ cat }}</option>
                 {% endfor %}
               </select>
               <p class="field-hint">Managed in <a href="{{ url_for('admin_categories.index') }}">Categories</a>.</p>
@@ -95,13 +101,28 @@
           <!-- Sizes -->
           <div class="panel">
             <h2 class="panel-title">Sizes</h2>
-            <div class="size-checkboxes">
-              {% for sz in ['XS','S','M','L','XL','XXL'] %}
+            <p class="field-hint" id="size-set-hint"></p>
+            <div class="size-checkboxes" id="size-set-letter">
+              {% for sz in letter_sizes %}
               <label class="size-check">
                 <input type="checkbox" name="sizes" value="{{ sz }}" />
                 {{ sz }}
               </label>
               {% endfor %}
+            </div>
+            <div class="size-checkboxes" id="size-set-footwear">
+              {% for sz in footwear_sizes %}
+              <label class="size-check">
+                <input type="checkbox" name="sizes" value="{{ sz }}" />
+                {{ sz }}
+              </label>
+              {% endfor %}
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <label for="sizes_custom">Other sizes</label>
+              <input type="text" id="sizes_custom" name="sizes_custom"
+                     placeholder="41.5, 47, UK 8" />
+              <p class="field-hint">Comma-separated. Use for half sizes or any size not listed above.</p>
             </div>
           </div>
         </div>
@@ -214,6 +235,32 @@
 
 {% block scripts %}
 <script>
+  // Sizes: footwear categories are sold in numbers, everything else in letters.
+  // The hidden set is disabled so it never submits.
+  const categorySelect = document.getElementById('category');
+  const letterSet      = document.getElementById('size-set-letter');
+  const footwearSet    = document.getElementById('size-set-footwear');
+  const sizeHint       = document.getElementById('size-set-hint');
+
+  function showSizeSet(footwear) {
+    const shown  = footwear ? footwearSet : letterSet;
+    const hidden = footwear ? letterSet : footwearSet;
+    shown.style.display  = 'flex';
+    hidden.style.display = 'none';
+    shown.querySelectorAll('input').forEach(i => { i.disabled = false; });
+    hidden.querySelectorAll('input').forEach(i => { i.disabled = true; });
+    sizeHint.textContent = footwear
+      ? 'Footwear category — sizes are numbers (EU).'
+      : 'Letter sizes. Pick a footwear category (shoes, sandals, slippers…) for numbers.';
+  }
+
+  categorySelect.addEventListener('change', function () {
+    const opt = this.options[this.selectedIndex];
+    showSizeSet(!!opt && opt.dataset.footwear === '1');
+  });
+
+  showSizeSet({{ 'true' if footwear_start else 'false' }});
+
   // Color preview
   document.getElementById('colors-input').addEventListener('input', function() {
     const preview = document.getElementById('color-preview');

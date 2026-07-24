@@ -1,6 +1,8 @@
 from flask import Blueprint, session, redirect, request, url_for, render_template, flash
 from bson import ObjectId
 
+from app.pricing import effective_price, is_on_sale
+
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
 
 
@@ -27,15 +29,17 @@ def index():
             product = None
 
         if product:
+            unit_price = effective_price(product)
             enriched.append({
                 'product_id': item['product_id'],
                 'name': product['name'],
-                'price': product['price'],
+                'price': unit_price,
                 'size': item.get('size', ''),
                 'color': item.get('color', ''),
                 'quantity': item['quantity'],
                 'image': product.get('images', [None])[0],
-                'subtotal': product['price'] * item['quantity'],
+                'subtotal': unit_price * item['quantity'],
+                'original_price': product['price'] if is_on_sale(product) else None,
             })
 
     cart_total = sum(i['subtotal'] for i in enriched)

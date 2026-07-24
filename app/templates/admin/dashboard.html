@@ -31,16 +31,40 @@
       </div>
     </header>
 
+    <div class="day-nav">
+      <a class="day-arrow" href="{{ url_for('admin.dashboard', date=prev_day) }}"
+         aria-label="Previous day">&#8592;</a>
+      <div class="day-nav-center">
+        <span class="day-label">
+          {% if is_today %}Today{% else %}{{ day.strftime('%A') }}{% endif %}
+        </span>
+        <span class="day-date">{{ day.strftime('%d %B %Y') }}</span>
+      </div>
+      {% if next_day %}
+      <a class="day-arrow" href="{{ url_for('admin.dashboard', date=next_day) }}"
+         aria-label="Next day">&#8594;</a>
+      {% else %}
+      <span class="day-arrow disabled" aria-hidden="true">&#8594;</span>
+      {% endif %}
+      <form method="get" class="day-picker">
+        <input type="date" name="date" value="{{ day.isoformat() }}"
+               max="{{ max_day }}" onchange="this.form.submit()" />
+      </form>
+      {% if not is_today %}
+      <a class="day-today-link" href="{{ url_for('admin.dashboard') }}">Back to today</a>
+      {% endif %}
+    </div>
+
     <div class="stats-grid">
       <article class="stat-card">
-        <span class="stat-label">Orders</span>
-        <strong>{{ total_orders }}</strong>
-        <p>{{ pending_orders }} pending</p>
+        <span class="stat-label">Orders {% if is_today %}today{% else %}this day{% endif %}</span>
+        <strong>{{ day_orders }}</strong>
+        <p>{{ pending_day }} pending · <span class="muted-all">{{ total_orders }} all time</span></p>
       </article>
       <article class="stat-card">
-        <span class="stat-label">Revenue</span>
-        <strong>₦{{ '%.2f' | format(total_revenue) }}</strong>
-        <p>All time (excl. cancelled)</p>
+        <span class="stat-label">Revenue {% if is_today %}today{% else %}this day{% endif %}</span>
+        <strong>₦{{ '%.2f' | format(day_revenue) }}</strong>
+        <p><span class="muted-all">₦{{ '%.2f' | format(total_revenue) }} all time</span> (excl. cancelled)</p>
       </article>
       <article class="stat-card">
         <span class="stat-label">Products</span>
@@ -57,7 +81,7 @@
     <div class="panel-grid">
       <section class="panel">
         <div class="panel-heading">
-          <h2>Recent orders</h2>
+          <h2>{% if is_today %}Today's orders{% else %}Orders on {{ day.strftime('%d %b') }}{% endif %}</h2>
           <a href="{{ url_for('admin_orders.index') }}">View all</a>
         </div>
         <ul class="activity-list">
@@ -68,7 +92,7 @@
           </li>
           {% else %}
           <li>
-            <span style="color:var(--muted)">No orders yet</span>
+            <span style="color:var(--muted)">No orders on this day</span>
             <small></small>
           </li>
           {% endfor %}
@@ -190,6 +214,57 @@
     font-size: 14px;
     color: var(--muted);
   }
+  .day-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .day-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 18px;
+    text-decoration: none;
+  }
+  .day-arrow:hover { background: var(--bg); }
+  .day-arrow.disabled { opacity: 0.35; pointer-events: none; }
+  .day-nav-center {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+  }
+  .day-label {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .day-date {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .day-picker { margin: 0; }
+  .day-picker input {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .day-today-link {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .muted-all { color: var(--muted); }
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

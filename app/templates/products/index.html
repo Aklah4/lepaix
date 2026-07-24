@@ -1,11 +1,12 @@
-{% extends "store_base.html" %} {% block title %}The Collection — Lepaix{%
-endblock %} {% block head_styles %} /* ── PAGE HEADER ── */ .products-header {
+{% extends "store_base.html" %} {% import 'macros/price.html' as pr %} {% block
+title %}The Collection — Lepaix{% endblock %} {% block head_styles %} /* ── PAGE HEADER ── */ .products-header {
 background: #f0ede8; padding: 72px 32px 56px; position: relative; overflow:
 hidden; } .products-header-inner { max-width: 1280px; margin: 0 auto; position:
 relative; z-index: 1; } .products-eyebrow { font-size: 10px; letter-spacing:
 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
 .products-header h1 { font-family: 'Playfair Display', serif; font-size:
-clamp(40px, 6vw, 72px); font-weight: 500; line-height: 1; margin-bottom: 10px; }
+clamp(30px, 6vw, 72px); font-weight: 500; line-height: 1.05; margin-bottom:
+10px; overflow-wrap: break-word; }
 .products-header-sub { font-size: 14px; color: var(--muted); font-weight: 300;
 margin-top: 6px; } .products-header-deco { position: absolute; right: 0; top: 0;
 bottom: 0; width: 50%; display: flex; align-items: flex-end; overflow: hidden;
@@ -64,7 +65,11 @@ color: #fff; padding: 3px 8px; border-radius: 2px; } .product-info { padding: 0
 2px; } .product-cat-label { font-size: 10px; letter-spacing: 0.12em;
 text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
 .product-name { font-size: 14px; font-weight: 400; margin-bottom: 5px;
-line-height: 1.4; } .product-price { font-size: 13px; color: var(--muted); } /*
+line-height: 1.4; } .product-price { font-size: 13px; color: var(--muted); }
+.product-price .price-now { color: var(--accent); font-weight: 500; }
+.product-price .price-was { margin-left: 8px; color: var(--muted);
+text-decoration: line-through; } .product-badge.sale { background: var(--accent);
+} /*
 Empty state when filter has no results */ .products-empty { grid-column: 1 / -1;
 text-align: center; padding: 80px 24px; color: var(--muted); } .products-empty
 h3 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400;
@@ -73,15 +78,22 @@ margin-bottom: 10px; color: var(--text); } .products-empty p { font-size: 14px;
 grid-template-columns: repeat(3, 1fr); } } @media (max-width: 768px) {
 .product-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
 .products-body { padding: 32px 16px 60px; } .filter-pill { padding: 16px 14px;
-font-size: 11px; } .products-header { padding: 48px 24px 40px; } .filter-bar {
+font-size: 11px; } .products-header { padding: 40px 20px 32px; }
+.products-header-deco { width: 38%; opacity: 0.55; } .products-header h1 {
+font-size: clamp(28px, 8vw, 44px); } .products-eyebrow { margin-bottom: 10px; }
+.products-header .breadcrumb { margin-bottom: 18px !important; font-size: 12px;
+flex-wrap: wrap; } .filter-bar {
 top: 84px; } .filter-pills-row { display: none; } .filter-category-select {
 display: block; flex: 1; min-width: 0; margin: 0 10px; padding: 9px 28px 9px
 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px;
 font-family: inherit; color: var(--text); background: #fff
-url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8'
-height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b67'/%3E%3C/svg%3E")
-no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
-(max-width: 480px) { .product-grid { gap: 20px 10px; } }
+url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%20height='5'%3E%3Cpath%20d='M0%200l4%205%204-5z'%20fill='%236b6b67'/%3E%3C/svg%3E") no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
+(max-width: 600px) { .products-header-deco { display: none; }
+.products-header-inner { max-width: 100%; } } @media (max-width: 480px) {
+.product-grid { gap: 20px 10px; } .products-header { padding: 32px 16px 26px; }
+.products-header h1 { font-size: clamp(26px, 8.5vw, 34px); }
+.products-header-sub { font-size: 13px; } .filter-bar-inner { padding: 0 12px; }
+.gender-tab-link { padding: 16px 12px; font-size: 11px; } }
 {% endblock %} {% block banner %}
 <section class="products-header">
   <div class="products-header-inner">
@@ -182,7 +194,9 @@ no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
           src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}"
           alt="{{ p.name }}"
         />
-        {% endif %} {% if loop.index <= 3 %}
+        {% endif %} {% if is_on_sale(p) %}
+        <span class="product-badge sale">-{{ discount_percent(p) }}%</span>
+        {% elif loop.index <= 3 %}
         <span class="product-badge">New</span>
         {% endif %}
         <button
@@ -209,7 +223,7 @@ no-repeat right 12px center; appearance: none; cursor: pointer; } } @media
         <div class="product-cat-label">{{ p.category }}</div>
         {% endif %}
         <div class="product-name">{{ p.name }}</div>
-        <div class="product-price">{{ p.price | money }}</div>
+        <div class="product-price">{{ pr.price_tag(p) }}</div>
       </div>
     </a>
     {% endfor %} {% else %}

@@ -751,6 +751,22 @@
           display: flex;
           justify-content: space-between;
           padding: 0 20px;
+          gap: 8px;
+        }
+        .site-brand {
+          min-width: 0;
+        }
+        .site-brand img {
+          height: 52px;
+          max-width: 140px;
+          object-fit: contain;
+          padding: 4px 8px;
+        }
+        .header-right {
+          min-width: 0;
+        }
+        .header-icons {
+          gap: 14px;
         }
         .main-nav {
           display: none;
@@ -809,6 +825,14 @@
       @media (max-width: 480px) {
         .header-inner {
           padding: 0 16px;
+        }
+        .site-brand img {
+          height: 44px;
+          max-width: 108px;
+          padding: 3px 6px;
+        }
+        .header-icons {
+          gap: 12px;
         }
         .hero-content {
           padding: 0 20px 44px;
@@ -969,7 +993,7 @@
       <div class="hero-tint"></div>
       <div class="hero-veil"></div>
       <div class="hero-content">
-        <p class="hero-eyebrow">Spring / Summer 2026</p>
+        <p class="hero-eyebrow"></p>
         <h1 class="hero-title">Fashion<br /><em>Store</em></h1>
         <a href="/products" class="hero-cta">
           Explore All

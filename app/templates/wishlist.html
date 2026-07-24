@@ -1,4 +1,5 @@
 {% extends "store_base.html" %}
+{% import 'macros/price.html' as pr %}
 
 {% block title %}Wishlist — Lepaix{% endblock %}
 
@@ -136,6 +137,8 @@
   }
   .product-name  { font-size: 14px; font-weight: 400; margin-bottom: 5px; line-height: 1.4; }
   .product-price { font-size: 13px; color: var(--muted); }
+  .product-price .price-now { color: var(--accent); font-weight: 500; }
+  .product-price .price-was { margin-left: 8px; text-decoration: line-through; }
 
   /* Empty state */
   .wishlist-empty {
@@ -223,7 +226,7 @@
         <div class="product-cat-label">{{ p.category }}</div>
         {% endif %}
         <div class="product-name">{{ p.name }}</div>
-        <div class="product-price">{{ p.price | money }}</div>
+        <div class="product-price">{{ pr.price_tag(p) }}</div>
       </div>
     </a>
     {% endfor %}

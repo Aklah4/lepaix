@@ -1,4 +1,5 @@
 {% extends "store_base.html" %}
+{% import 'macros/price.html' as pr %}
 
 {% block title %}{{ product.name }} — Lepaix{% endblock %}
 
@@ -65,6 +66,11 @@
   }
   .product-info-price { font-size: 22px; font-weight: 500; margin-bottom: 24px; }
   .product-info-price .original { font-size: 15px; color: var(--muted); text-decoration: line-through; margin-left: 8px; }
+  .product-info-price .price-now { color: var(--accent); }
+  .product-info-price .price-was { font-size: 15px; color: var(--muted); text-decoration: line-through; margin-left: 10px; font-weight: 400; }
+  .product-info-price .sale-flag { display: inline-block; vertical-align: middle; margin-left: 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #fff; background: var(--accent); border-radius: 999px; padding: 3px 10px; }
+  .product-card-price .price-now { color: var(--accent); font-weight: 500; }
+  .product-card-price .price-was { margin-left: 6px; text-decoration: line-through; }
 
   .info-divider { height: 1px; background: var(--border); margin: 20px 0; }
   .product-description { font-size: 14px; color: var(--muted); line-height: 1.75; margin: 16px 0 0; }
@@ -194,7 +200,13 @@
       <div class="product-category">{{ product.get('category', 'Collection') }}</div>
       <h1>{{ product.name }}</h1>
       <div class="product-info-price">
+        {% if is_on_sale(product) %}
+        <span class="price-now">{{ effective_price(product) | money }}</span>
+        <span class="price-was">{{ product.price | money }}</span>
+        <span class="sale-flag">{{ discount_percent(product) }}% off</span>
+        {% else %}
         {{ product.price | money }}
+        {% endif %}
       </div>
 
       {% if product.get('description') %}
@@ -226,7 +238,7 @@
         <!-- Sizes -->
         <div class="option-label">Size</div>
         <div class="size-select">
-          {% set sizes = product.sizes if product.get('sizes') else ['XS','S','M','L','XL'] %}
+          {% set sizes = product.sizes if product.get('sizes') else default_sizes %}
           {% for s in sizes %}
           <button class="size-btn {% if loop.first %}selected{% endif %}"
                   type="button" data-size="{{ s }}" onclick="selectSize(this)">{{ s }}</button>
@@ -273,7 +285,7 @@
         {% endif %}
       </div>
       <div class="product-card-name">{{ p.name }}</div>
-      <div class="product-card-price">{{ p.price | money }}</div>
+      <div class="product-card-price">{{ pr.price_tag(p) }}</div>
     </a>
     {% endfor %}
   </div>

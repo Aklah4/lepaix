@@ -1,4 +1,5 @@
 {% extends "store_base.html" %}
+{% import 'macros/price.html' as pr %}
 
 {% block title %}{% if q %}{{ q }} — Search{% else %}Search{% endif %} — Lepaix{% endblock %}
 
@@ -49,6 +50,8 @@
     font-size: 13px;
     color: var(--muted);
   }
+  .search-card-price .price-now { color: var(--accent); font-weight: 500; }
+  .search-card-price .price-was { margin-left: 8px; text-decoration: line-through; }
   .search-empty {
     text-align: center;
     padding: 80px 0;
@@ -86,7 +89,7 @@
           {% endif %}
         </div>
         <div class="search-card-name">{{ p.name }}</div>
-        <div class="search-card-price">{{ p.price | money }}</div>
+        <div class="search-card-price">{{ pr.price_tag(p) }}</div>
       </a>
       {% endfor %}
     </div>

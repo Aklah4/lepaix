@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, request, url_for, flash, session
-from app.uploader import delete_image, upload_image
+from app.uploader import delete_image, upload_image_safe
 
 admin_settings_bp = Blueprint('admin_settings', __name__, url_prefix='/admin/settings')
 
@@ -66,22 +66,28 @@ def index():
         if action == 'save_logo':
             file = request.files.get('site_logo')
             if file and file.filename and _allowed(file.filename):
-                delete_image(settings.get('site_logo'))
-                url = upload_image(file, folder='lepaix/settings')
-                db.settings.update_one(
-                    {'_id': 'site'},
-                    {'$set': {'site_logo': url}},
-                    upsert=True,
-                )
-                flash('Site logo updated.', 'success')
+                url = upload_image_safe(file, folder='lepaix/settings')
+                if url:
+                    delete_image(settings.get('site_logo'))
+                    db.settings.update_one(
+                        {'_id': 'site'},
+                        {'$set': {'site_logo': url}},
+                        upsert=True,
+                    )
+                    flash('Site logo updated.', 'success')
+                else:
+                    flash('Could not upload the logo - kept the previous one.', 'error')
             else:
                 flash('Please select a valid image file (PNG, JPG, WEBP, GIF).', 'error')
             return redirect(url_for('admin_settings.index'))
 
         file = request.files.get('banner_image')
         if file and file.filename and _allowed(file.filename):
+            url = upload_image_safe(file, folder='lepaix/settings')
+            if not url:
+                flash('Could not upload the banner - kept the previous one.', 'error')
+                return redirect(url_for('admin_settings.index'))
             delete_image(settings.get('banner_image'))
-            url = upload_image(file, folder='lepaix/settings')
             db.settings.update_one(
                 {'_id': 'site'},
                 {'$set': {'banner_image': url}},

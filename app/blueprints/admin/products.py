@@ -6,7 +6,8 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, session, url_for)
 
 from app.db import get_db
-from app.uploader import delete_image as _delete_image, upload_image
+from app.sizes import FOOTWEAR_SIZES, LETTER_SIZES, is_footwear, parse_sizes
+from app.uploader import delete_image as _delete_image, upload_images
 from app.blueprints.admin.categories import ensure_default_categories
 
 admin_products_bp = Blueprint('admin_products', __name__, url_prefix='/admin/products')
@@ -26,6 +27,51 @@ def _category_names(db):
 def _allowed(filename):
     return ('.' in filename and
             filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS'])
+
+
+def _parse_sale_price(raw, price):
+    """Return (sale_price_or_None, error_or_None).
+
+    Blank clears the sale. A value must be a positive number below `price`;
+    anything else is rejected so a bad markdown can't slip in silently.
+    """
+    raw = (raw or '').strip()
+    if not raw:
+        return None, None
+    try:
+        sale = float(raw)
+    except ValueError:
+        return None, 'Sale price must be a number.'
+    if sale <= 0:
+        return None, 'Sale price must be greater than zero.'
+    if price is not None and sale >= price:
+        return None, 'Sale price must be lower than the regular price.'
+    return sale, None
+
+
+def _flash_upload_problems(skipped, failed):
+    """Tell the admin which files did not make it, instead of dropping them."""
+    if skipped:
+        allowed = ', '.join(sorted(current_app.config['ALLOWED_EXTENSIONS']))
+        flash(f"Skipped {', '.join(skipped)} - only {allowed} files can be uploaded.",
+              'error')
+    if failed:
+        flash(f"Could not upload {', '.join(failed)} - the image service did not "
+              'accept it. The product was saved without it.', 'error')
+
+
+def _size_ctx(categories, category=None):
+    """Both size option sets, and which categories the form treats as footwear.
+
+    The form switches sets as the admin changes category, so it needs to know
+    up front which of the options are footwear.
+    """
+    return {
+        'letter_sizes':        LETTER_SIZES,
+        'footwear_sizes':      FOOTWEAR_SIZES,
+        'footwear_categories': [c for c in categories if is_footwear(c)],
+        'footwear_start':      is_footwear(category),
+    }
 
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -87,30 +133,40 @@ def add():
         category = request.form.get('category', '').strip()
         status   = request.form.get('status', 'draft')
         colors   = [c.strip() for c in request.form.get('colors', '').split(',') if c.strip()]
-        sizes    = request.form.getlist('sizes')
+        sizes    = parse_sizes(request.form.getlist('sizes'),
+                               request.form.get('sizes_custom', ''))
         featured = request.form.get('featured') == 'on'
         gender   = request.form.get('gender', 'Unisex')
 
         if not name or not price_s:
             flash('Name and price are required.', 'error')
-            return render_template('admin/products/add.html', categories=categories)
+            return render_template('admin/products/add.html', categories=categories,
+                                   **_size_ctx(categories, category))
 
         try:
             price = float(price_s)
             stock = int(stock_s)
         except ValueError:
             flash('Price and stock must be numbers.', 'error')
-            return render_template('admin/products/add.html', categories=categories)
+            return render_template('admin/products/add.html', categories=categories,
+                                   **_size_ctx(categories, category))
 
-        images = []
-        for file in request.files.getlist('images'):
-            if file and file.filename and _allowed(file.filename):
-                images.append(upload_image(file, folder='lepaix/products'))
+        sale_price, sale_err = _parse_sale_price(request.form.get('sale_price'), price)
+        if sale_err:
+            flash(sale_err, 'error')
+            return render_template('admin/products/add.html', categories=categories,
+                                   **_size_ctx(categories, category))
+
+        images, skipped, failed = upload_images(
+            request.files.getlist('images'), folder='lepaix/products',
+            allowed=current_app.config['ALLOWED_EXTENSIONS'])
+        _flash_upload_problems(skipped, failed)
 
         doc = {
             'name':        name,
             'description': desc,
             'price':       price,
+            'sale_price':  sale_price,
             'stock':       stock,
             'category':    category,
             'status':      status,
@@ -126,12 +182,13 @@ def add():
             db.products.insert_one(doc)
         except Exception as e:
             flash(f'Database error: {e}', 'error')
-            return render_template('admin/products/add.html', categories=categories)
+            return render_template('admin/products/add.html', categories=categories,
+                                   **_size_ctx(categories, category))
 
         flash(f'Product "{name}" added successfully.', 'success')
         return redirect(url_for('admin_products.index'))
 
-    return render_template('admin/products/add.html', categories=categories)
+    return render_template('admin/products/add.html', categories=categories, **_size_ctx(categories))
 
 
 # ── Edit ──────────────────────────────────────────────────────────────────────
@@ -166,32 +223,44 @@ def edit(product_id):
         category = request.form.get('category', '').strip()
         status   = request.form.get('status', 'draft')
         colors   = [c.strip() for c in request.form.get('colors', '').split(',') if c.strip()]
-        sizes    = request.form.getlist('sizes')
+        sizes    = parse_sizes(request.form.getlist('sizes'),
+                               request.form.get('sizes_custom', ''))
         featured = request.form.get('featured') == 'on'
         gender   = request.form.get('gender', 'Unisex')
 
         if not name or not price_s:
             flash('Name and price are required.', 'error')
-            return render_template('admin/products/edit.html', product=product, categories=categories)
+            return render_template('admin/products/edit.html', product=product,
+                                   categories=categories, **_size_ctx(categories, category))
 
         try:
             price = float(price_s)
             stock = int(stock_s)
         except ValueError:
             flash('Price and stock must be numbers.', 'error')
-            return render_template('admin/products/edit.html', product=product, categories=categories)
+            return render_template('admin/products/edit.html', product=product,
+                                   categories=categories, **_size_ctx(categories, category))
+
+        sale_price, sale_err = _parse_sale_price(request.form.get('sale_price'), price)
+        if sale_err:
+            flash(sale_err, 'error')
+            return render_template('admin/products/edit.html', product=product,
+                                   categories=categories, **_size_ctx(categories, category))
 
         # Append newly uploaded images to existing ones
         existing_images = product.get('images', [])
-        for file in request.files.getlist('images'):
-            if file and file.filename and _allowed(file.filename):
-                existing_images.append(upload_image(file, folder='lepaix/products'))
+        new_images, skipped, failed = upload_images(
+            request.files.getlist('images'), folder='lepaix/products',
+            allowed=current_app.config['ALLOWED_EXTENSIONS'])
+        existing_images.extend(new_images)
+        _flash_upload_problems(skipped, failed)
 
         try:
             db.products.update_one({'_id': oid}, {'$set': {
                 'name':        name,
                 'description': desc,
                 'price':       price,
+                'sale_price':  sale_price,
                 'stock':       stock,
                 'category':    category,
                 'status':      status,
@@ -204,12 +273,14 @@ def edit(product_id):
             }})
         except Exception as e:
             flash(f'Database error: {e}', 'error')
-            return render_template('admin/products/edit.html', product=product, categories=categories)
+            return render_template('admin/products/edit.html', product=product,
+                                   categories=categories, **_size_ctx(categories, category))
 
         flash(f'Product "{name}" updated.', 'success')
         return redirect(url_for('admin_products.index'))
 
-    return render_template('admin/products/edit.html', product=product, categories=categories)
+    return render_template('admin/products/edit.html', product=product, categories=categories,
+                           **_size_ctx(categories, product.get('category')))
 
 
 # ── Delete ────────────────────────────────────────────────────────────────────

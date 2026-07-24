@@ -110,9 +110,22 @@ def update_status(order_id):
         flash('Invalid order ID.', 'error')
         return redirect(url_for('admin_orders.index'))
 
+    order = db.orders.find_one({'_id': oid})
+    if not order:
+        flash('Order not found.', 'error')
+        return redirect(url_for('admin_orders.index'))
+
+    old_status = order.get('status')
     db.orders.update_one(
         {'_id': oid},
         {'$set': {'status': new_status, 'updated_at': datetime.now(timezone.utc)}},
     )
     flash(f'Order status updated to {new_status}.', 'success')
+
+    # Notify the customer once, only when the order first becomes 'shipped'.
+    if new_status == 'shipped' and old_status != 'shipped':
+        from app.emails import send_shipping_email
+        order['status'] = new_status
+        send_shipping_email(order)
+
     return redirect(url_for('admin_orders.detail', order_id=order_id))

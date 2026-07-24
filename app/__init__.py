@@ -1,9 +1,9 @@
 import os
 import secrets
 import cloudinary
-from flask import Flask, url_for
+from flask import Flask, flash, redirect, request, url_for
 from .db import init_db
-from .extensions import limiter, csrf
+from .extensions import limiter, csrf, mail
 from config import get_config
 
 
@@ -36,6 +36,10 @@ def create_app():
 
     limiter.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
+
+    if not app.config.get('MAIL_SERVER'):
+        app.logger.warning('MAIL_SERVER is not set - order emails will be skipped.')
 
     @app.after_request
     def set_security_headers(response):
@@ -55,6 +59,21 @@ def create_app():
             "form-action 'self';"
         )
         return response
+
+    @app.errorhandler(413)
+    def handle_upload_too_large(error):
+        """Werkzeug's default 413 page is bare and loses the admin's context."""
+        limit_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        flash(f'Those files are too large. Everything in one submission must total '
+              f'under {limit_mb} MB - try uploading fewer images at a time.', 'error')
+        return redirect(request.referrer or url_for('index.index'))
+
+    from app.pricing import is_on_sale, effective_price, discount_percent
+    app.jinja_env.globals.update(
+        is_on_sale=is_on_sale,
+        effective_price=effective_price,
+        discount_percent=discount_percent,
+    )
 
     @app.template_filter('image_url')
     def image_url_filter(path):

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, abort, request
 from bson import ObjectId
 from app.db import get_db
+from app.sizes import size_options
 
 products_bp = Blueprint('products', __name__, url_prefix='/products')
 
@@ -66,4 +67,5 @@ def detail(product_id):
     }).limit(4))
     _prep(related)
 
-    return render_template('products/detail.html', product=product, related=related)
+    return render_template('products/detail.html', product=product, related=related,
+                           default_sizes=size_options(product.get('category')))
