@@ -100,6 +100,10 @@ def _post_resend(app, payload):
     req = urllib.request.Request(RESEND_ENDPOINT, data=data, method='POST', headers={
         'Authorization': f"Bearer {app.config.get('RESEND_API_KEY', '')}",
         'Content-Type': 'application/json',
+        # Resend sits behind Cloudflare, which blocks the default
+        # "Python-urllib/x" agent with a 403 (error 1010) before the request
+        # ever reaches Resend. A named agent gets through.
+        'User-Agent': 'Lepaix-Store/1.0',
     })
     timeout = app.config.get('MAIL_TIMEOUT', 20)
     with urllib.request.urlopen(req, timeout=timeout) as resp:
