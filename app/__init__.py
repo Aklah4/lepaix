@@ -3,7 +3,7 @@ import secrets
 import cloudinary
 from flask import Flask, flash, redirect, request, url_for
 from .db import init_db
-from .extensions import limiter, csrf, mail
+from .extensions import limiter, csrf
 from config import get_config
 
 
@@ -36,10 +36,9 @@ def create_app():
 
     limiter.init_app(app)
     csrf.init_app(app)
-    mail.init_app(app)
 
-    if not app.config.get('MAIL_SERVER'):
-        app.logger.warning('MAIL_SERVER is not set - order emails will be skipped.')
+    if not app.config.get('RESEND_API_KEY'):
+        app.logger.warning('RESEND_API_KEY is not set - order emails will be skipped.')
 
     @app.after_request
     def set_security_headers(response):

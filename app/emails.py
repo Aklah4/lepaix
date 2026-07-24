@@ -1,8 +1,12 @@
 """Order emails: customer confirmation and vendor notification.
 
-Nothing in here may break checkout. `send_order_emails()` catches everything,
-logs it, and returns; the SMTP conversation itself happens on a background
-thread so the shopper never waits on the mail server.
+Delivery goes through Resend's HTTPS API rather than SMTP. Railway blocks
+outbound SMTP ports, so smtp.gmail.com is unreachable from production; Resend
+sends over port 443, which is always open, and works locally too.
+
+Nothing in here may break checkout. The send functions catch everything, log
+it, and return; the network call itself happens on a background thread so the
+shopper never waits on it.
 
 Bodies are rendered up front, inside the request, because the background
 thread has no request context - and the `money` template filter reads the
@@ -10,12 +14,14 @@ session, so it cannot be used in these templates. Amounts are formatted here
 with `naira()` instead, since orders are stored in NGN.
 """
 
+import json
 import threading
+import urllib.error
+import urllib.request
 
 from flask import current_app, render_template
-from flask_mail import Message
 
-from app.extensions import mail
+RESEND_ENDPOINT = 'https://api.resend.com/emails'
 
 
 def naira(amount):
@@ -88,19 +94,65 @@ def _plain_text(order, for_vendor):
     return '\n'.join(lines)
 
 
-def _send_async(app, msg):
-    with app.app_context():
-        try:
-            mail.send(msg)
-            app.logger.info('Order email sent: %r -> %s',
-                            msg.subject, ', '.join(msg.recipients))
-        except Exception:
-            app.logger.exception('Order email FAILED: %r -> %s',
-                                 msg.subject, ', '.join(msg.recipients))
+def _post_resend(app, payload):
+    """POST one email to Resend. Returns (status_code, body_text)."""
+    data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(RESEND_ENDPOINT, data=data, method='POST', headers={
+        'Authorization': f"Bearer {app.config.get('RESEND_API_KEY', '')}",
+        'Content-Type': 'application/json',
+    })
+    timeout = app.config.get('MAIL_TIMEOUT', 20)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.status, resp.read().decode('utf-8', 'replace')
 
 
-def _dispatch(app, msg):
-    threading.Thread(target=_send_async, args=(app, msg), daemon=True).start()
+def _send_async(app, payload):
+    subject = payload.get('subject', '')
+    to = ', '.join(payload.get('to', []))
+    try:
+        status, body = _post_resend(app, payload)
+        if 200 <= status < 300:
+            app.logger.info('Order email sent: %r -> %s', subject, to)
+        else:
+            app.logger.error('Order email FAILED (%s): %r -> %s | %s',
+                             status, subject, to, body[:300])
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode('utf-8', 'replace')[:300]
+        app.logger.error('Order email FAILED (%s): %r -> %s | %s',
+                         e.code, subject, to, detail)
+    except Exception:
+        app.logger.exception('Order email FAILED: %r -> %s', subject, to)
+
+
+def _dispatch(app, payload):
+    threading.Thread(target=_send_async, args=(app, payload), daemon=True).start()
+
+
+def _build(app, subject, recipients, html, text, reply_to=None):
+    """Assemble a Resend payload. `from` must be on a Resend-verified domain."""
+    payload = {
+        'from': (app.config.get('MAIL_DEFAULT_SENDER') or '').strip(),
+        'to': recipients,
+        'subject': subject,
+        'html': html,
+        'text': text,
+    }
+    if reply_to:
+        payload['reply_to'] = reply_to
+    return payload
+
+
+def _mail_ready(app, order_number):
+    """True when Resend is configured. Logs and returns False otherwise."""
+    if not app.config.get('RESEND_API_KEY'):
+        app.logger.warning('RESEND_API_KEY unset - skipping emails for order %s',
+                           order_number)
+        return False
+    if not (app.config.get('MAIL_DEFAULT_SENDER') or '').strip():
+        app.logger.warning('MAIL_DEFAULT_SENDER unset - skipping emails for order %s',
+                           order_number)
+        return False
+    return True
 
 
 def send_order_emails(order):
@@ -113,9 +165,7 @@ def send_order_emails(order):
     messages = []
 
     try:
-        if not app.config.get('MAIL_SERVER'):
-            app.logger.warning('MAIL_SERVER unset - skipping emails for order %s',
-                               order.get('order_number'))
+        if not _mail_ready(app, order.get('order_number')):
             return
 
         order_number = order.get('order_number', '')
@@ -124,10 +174,11 @@ def send_order_emails(order):
         vendor_email = (app.config.get('VENDOR_EMAIL') or '').strip()
 
         if customer_email:
-            messages.append(Message(
+            messages.append(_build(
+                app,
                 subject=f'Your Lepaix order {order_number}',
                 recipients=[customer_email],
-                body=_plain_text(order, for_vendor=False),
+                text=_plain_text(order, for_vendor=False),
                 html=render_template('emails/order_confirmation.html',
                                      order=order, customer=customer,
                                      naira=naira, variant=_variant),
@@ -136,11 +187,12 @@ def send_order_emails(order):
             app.logger.warning('Order %s has no customer email', order_number)
 
         if vendor_email:
-            messages.append(Message(
+            messages.append(_build(
+                app,
                 subject=f'New order placed - {order_number}',
                 recipients=[vendor_email],
                 reply_to=customer_email or None,
-                body=_plain_text(order, for_vendor=True),
+                text=_plain_text(order, for_vendor=True),
                 html=render_template('emails/new_order_notification.html',
                                      order=order, customer=customer,
                                      naira=naira, variant=_variant),
@@ -154,11 +206,12 @@ def send_order_emails(order):
                              order.get('order_number'))
         return
 
-    for msg in messages:
+    for payload in messages:
         try:
-            _dispatch(app, msg)
+            _dispatch(app, payload)
         except Exception:
-            app.logger.exception('Could not start mail thread for %r', msg.subject)
+            app.logger.exception('Could not start mail thread for %r',
+                                 payload.get('subject'))
 
 
 def _plain_text_shipped(order):
@@ -205,9 +258,7 @@ def send_shipping_email(order):
     app = current_app._get_current_object()
 
     try:
-        if not app.config.get('MAIL_SERVER'):
-            app.logger.warning('MAIL_SERVER unset - skipping shipping email for order %s',
-                               order.get('order_number'))
+        if not _mail_ready(app, order.get('order_number')):
             return
 
         order_number = order.get('order_number', '')
@@ -218,10 +269,11 @@ def send_shipping_email(order):
                                order_number)
             return
 
-        msg = Message(
+        payload = _build(
+            app,
             subject=f'Your Lepaix order {order_number} has shipped',
             recipients=[customer_email],
-            body=_plain_text_shipped(order),
+            text=_plain_text_shipped(order),
             html=render_template('emails/order_shipped.html',
                                  order=order, customer=customer,
                                  naira=naira, variant=_variant),
@@ -232,6 +284,7 @@ def send_shipping_email(order):
         return
 
     try:
-        _dispatch(app, msg)
+        _dispatch(app, payload)
     except Exception:
-        app.logger.exception('Could not start mail thread for %r', msg.subject)
+        app.logger.exception('Could not start mail thread for %r',
+                             payload.get('subject'))
