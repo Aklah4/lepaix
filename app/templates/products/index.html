@@ -74,7 +74,20 @@ Empty state when filter has no results */ .products-empty { grid-column: 1 / -1;
 text-align: center; padding: 80px 24px; color: var(--muted); } .products-empty
 h3 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400;
 margin-bottom: 10px; color: var(--text); } .products-empty p { font-size: 14px;
-} /* ── RESPONSIVE ── */ @media (max-width: 1024px) { .product-grid {
+} /* ── PAGINATION ── */ .pagination { display: flex; flex-wrap: wrap;
+justify-content: center; align-items: center; gap: 6px; margin-top: 64px; }
+.page-link { min-width: 38px; height: 38px; padding: 0 10px; display: inline-flex;
+align-items: center; justify-content: center; font-size: 13px; letter-spacing:
+0.04em; color: var(--muted); border: 1px solid var(--border); border-radius: 2px;
+background: #fff; text-decoration: none; transition: color 0.15s, border-color
+0.15s, background 0.15s; } .page-link:hover { color: var(--text); border-color:
+var(--text); } .page-link.current { color: #fff; background: var(--text);
+border-color: var(--text); font-weight: 500; } .page-link.disabled { opacity:
+0.35; pointer-events: none; } .page-arrow { padding: 0; } .page-gap { min-width:
+20px; text-align: center; font-size: 13px; color: var(--muted); }
+.pagination-note { margin-top: 14px; text-align: center; font-size: 11px;
+letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+/* ── RESPONSIVE ── */ @media (max-width: 1024px) { .product-grid {
 grid-template-columns: repeat(3, 1fr); } } @media (max-width: 768px) {
 .product-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 14px; }
 .products-body { padding: 32px 16px 60px; } .filter-pill { padding: 16px 14px;
@@ -93,7 +106,9 @@ url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%
 .product-grid { gap: 20px 10px; } .products-header { padding: 32px 16px 26px; }
 .products-header h1 { font-size: clamp(26px, 8.5vw, 34px); }
 .products-header-sub { font-size: 13px; } .filter-bar-inner { padding: 0 12px; }
-.gender-tab-link { padding: 16px 12px; font-size: 11px; } }
+.gender-tab-link { padding: 16px 12px; font-size: 11px; } .pagination {
+margin-top: 44px; gap: 4px; } .page-link { min-width: 34px; height: 34px;
+padding: 0 8px; font-size: 12px; } }
 {% endblock %} {% block banner %}
 <section class="products-header">
   <div class="products-header-inner">
@@ -172,7 +187,7 @@ url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%
       {% endfor %}
     </select>
     <span class="filter-count-label" id="filter-count"
-      >{{ products | length }} pieces</span
+      >{{ total }} piece{{ '' if total == 1 else 's' }}</span
     >
   </div>
 </div>
@@ -196,7 +211,7 @@ url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%
         />
         {% endif %} {% if is_on_sale(p) %}
         <span class="product-badge sale">-{{ discount_percent(p) }}%</span>
-        {% elif loop.index <= 3 %}
+        {% elif page == 1 and loop.index <= 3 %}
         <span class="product-badge">New</span>
         {% endif %}
         <button
@@ -237,5 +252,59 @@ url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%
     </div>
     {% endif %}
   </div>
+
+  {% if total_pages > 1 %}
+  {% set g = active_gender if active_gender else None %}
+  {% set c = active_category if active_category and active_category != 'All' else None %}
+  <nav class="pagination" aria-label="Pagination">
+    {% if page > 1 %}
+    <a
+      class="page-link page-arrow"
+      rel="prev"
+      href="{{ url_for('products.index', gender=g, category=c, page=(page - 1 if page - 1 > 1 else None)) }}"
+      aria-label="Previous page"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    </a>
+    {% else %}
+    <span class="page-link page-arrow disabled" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    </span>
+    {% endif %} {% for n in page_numbers %} {% if n is none %}
+    <span class="page-gap">…</span>
+    {% elif n == page %}
+    <span class="page-link current" aria-current="page">{{ n }}</span>
+    {% else %}
+    <a
+      class="page-link"
+      href="{{ url_for('products.index', gender=g, category=c, page=(n if n > 1 else None)) }}"
+      aria-label="Page {{ n }}"
+      >{{ n }}</a
+    >
+    {% endif %} {% endfor %} {% if page < total_pages %}
+    <a
+      class="page-link page-arrow"
+      rel="next"
+      href="{{ url_for('products.index', gender=g, category=c, page=page + 1) }}"
+      aria-label="Next page"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </a>
+    {% else %}
+    <span class="page-link page-arrow disabled" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </span>
+    {% endif %}
+  </nav>
+  <p class="pagination-note">Page {{ page }} of {{ total_pages }}</p>
+  {% endif %}
 </div>
 {% endblock %}

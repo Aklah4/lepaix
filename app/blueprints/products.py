@@ -5,6 +5,8 @@ from app.sizes import size_options
 
 products_bp = Blueprint('products', __name__, url_prefix='/products')
 
+PER_PAGE = 24
+
 _PLACEHOLDER_COLORS = [
     '#c4843c','#e8b8c0','#1e1e1e','#b8c8d8',
     '#e0d4b0','#b89060','#484038','#c8a870',
@@ -19,6 +21,23 @@ def _prep(products):
         if not p.get('bg'):
             p['bg'] = _PLACEHOLDER_COLORS[i % len(_PLACEHOLDER_COLORS)]
     return products
+
+
+def _page_numbers(page, total_pages, edge=1, around=1):
+    """Page links to render: first/last pages, a window around the current one,
+    and None wherever a run of pages was skipped (rendered as an ellipsis)."""
+    keep = {p for p in range(1, edge + 1)}
+    keep |= {p for p in range(total_pages - edge + 1, total_pages + 1)}
+    keep |= {p for p in range(page - around, page + around + 1)}
+    keep = sorted(p for p in keep if 1 <= p <= total_pages)
+
+    out, prev = [], 0
+    for p in keep:
+        if prev and p - prev > 1:
+            out.append(None)
+        out.append(p)
+        prev = p
+    return out
 
 
 @products_bp.route('/')
@@ -37,12 +56,26 @@ def index():
     if category and category != 'All':
         query['category'] = category
 
-    raw      = list(db.products.find(query).sort('created_at', -1).limit(24))
+    total       = db.products.count_documents(query)
+    total_pages = max(1, -(-total // PER_PAGE))
+
+    try:
+        page = int(request.args.get('page', 1))
+    except (TypeError, ValueError):
+        page = 1
+    page = max(1, min(page, total_pages))
+
+    raw = list(db.products.find(query)
+               .sort('created_at', -1)
+               .skip((page - 1) * PER_PAGE)
+               .limit(PER_PAGE))
     products = _prep(raw)
 
     return render_template('products/index.html', products=products,
                            categories=categories, active_gender=gender,
-                           active_category=category)
+                           active_category=category,
+                           page=page, total_pages=total_pages, total=total,
+                           page_numbers=_page_numbers(page, total_pages))
 
 
 @products_bp.route('/<product_id>')
