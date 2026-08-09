@@ -69,7 +69,9 @@ line-height: 1.4; } .product-price { font-size: 13px; color: var(--muted); }
 .product-price .price-now { color: var(--accent); font-weight: 500; }
 .product-price .price-was { margin-left: 8px; color: var(--muted);
 text-decoration: line-through; } .product-badge.sale { background: var(--accent);
-} /*
+} .product-badge.soldout { background: #6b6b67; } .product-card.is-soldout
+.product-img, .product-card.is-soldout .product-img-hover { opacity: .45;
+filter: grayscale(1); } /*
 Empty state when filter has no results */ .products-empty { grid-column: 1 / -1;
 text-align: center; padding: 80px 24px; color: var(--muted); } .products-empty
 h3 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400;
@@ -196,7 +198,7 @@ padding: 0 8px; font-size: 12px; } }
 <div class="products-body">
   <div class="product-grid" id="product-grid">
     {% if products %} {% for p in products %}
-    <a class="product-card" href="/products/{{ p._id }}">
+    <a class="product-card {% if is_out_of_stock(p) %}is-soldout{% endif %}" href="/products/{{ p._id }}">
       <div class="product-image">
         {% if p.get('images') %}
         <img
@@ -209,7 +211,9 @@ padding: 0 8px; font-size: 12px; } }
           src="{{ (p.images[1] if p.images|length > 1 else p.images[0]) | image_url }}"
           alt="{{ p.name }}"
         />
-        {% endif %} {% if is_on_sale(p) %}
+        {% endif %} {% if is_out_of_stock(p) %}
+        <span class="product-badge soldout">Sold out</span>
+        {% elif is_on_sale(p) %}
         <span class="product-badge sale">-{{ discount_percent(p) }}%</span>
         {% elif page == 1 and loop.index <= 3 %}
         <span class="product-badge">New</span>

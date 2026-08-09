@@ -4,6 +4,7 @@ from bson import ObjectId
 from app.delivery import quote_delivery
 from app.delivery.repository import ZoneRepository
 from app.pricing import effective_price, is_on_sale
+from app.stock import available_quantity, is_out_of_stock, stock_level
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
 
@@ -44,21 +45,33 @@ def index():
                 'original_price': product['price'] if is_on_sale(product) else None,
                 'weight_grams': product.get('weight_grams'),
                 'shipping_class': product.get('shipping_class'),
+                # Stock can run out between adding to the cart and checking
+                # out, so the cart re-reads it rather than trusting the
+                # session it was added to.
+                'out_of_stock': is_out_of_stock(product),
+                'stock_left': stock_level(product),
             })
 
-    cart_total = sum(i['subtotal'] for i in enriched)
+    unavailable = [i for i in enriched
+                   if i['out_of_stock'] or (i['stock_left'] is not None
+                                            and i['quantity'] > i['stock_left'])]
+    # Sold-out lines are shown but not charged for, so the total on screen is
+    # the total of what can actually be bought.
+    cart_total = sum(i['subtotal'] for i in enriched if not i['out_of_stock'])
 
     # An estimate, not a commitment: the fee is recalculated at checkout.
+    # Sold-out lines are left out - they are not going in the parcel.
     selected_zone_id = session.get('delivery_zone_id')
     address = {'zone_id': selected_zone_id} if selected_zone_id else None
-    quote = quote_delivery(enriched, address)
+    quote = quote_delivery([i for i in enriched if not i['out_of_stock']], address)
     delivery = float(quote.amount) if quote.resolved else 0.0
 
     return render_template('cart/index.html', cart=enriched, cart_total=cart_total,
                            quote=quote, delivery=delivery,
                            total=cart_total + delivery,
                            zones=ZoneRepository(db).active_zones(),
-                           selected_zone_id=selected_zone_id)
+                           selected_zone_id=selected_zone_id,
+                           unavailable=unavailable)
 
 
 @cart_bp.route('/delivery', methods=['POST'])
@@ -90,17 +103,43 @@ def add():
         flash('Product not found.', 'error')
         return redirect(request.referrer or url_for('products.index'))
 
+    from app.db import get_db
+    try:
+        product = get_db().products.find_one({'_id': ObjectId(product_id)})
+    except Exception:
+        product = None
+
+    if not product:
+        flash('Product not found.', 'error')
+        return redirect(request.referrer or url_for('products.index'))
+
+    # The button is disabled on a sold-out product, but a form post can arrive
+    # anyway - from a stale page, or from anyone who skips the page entirely.
+    if is_out_of_stock(product):
+        flash(f"\"{product['name']}\" is sold out.", 'error')
+        return redirect(request.referrer or url_for('products.index'))
+
     cart = get_cart()
     for item in cart:
         if item['product_id'] == product_id and item.get('size') == size and item.get('color') == color:
-            item['quantity'] += quantity
+            wanted = item['quantity'] + quantity
+            item['quantity'] = available_quantity(product, wanted)
             _save_cart(cart)
-            flash('Cart updated.', 'success')
+            if item['quantity'] < wanted:
+                flash(f"Only {item['quantity']} of \"{product['name']}\" left - "
+                      'your cart has been set to that.', 'error')
+            else:
+                flash('Cart updated.', 'success')
             return redirect(request.referrer or url_for('products.index'))
 
-    cart.append({'product_id': product_id, 'size': size, 'color': color, 'quantity': quantity})
+    allowed = available_quantity(product, quantity)
+    cart.append({'product_id': product_id, 'size': size, 'color': color,
+                 'quantity': allowed})
     _save_cart(cart)
-    flash('Item added to cart.', 'success')
+    if allowed < quantity:
+        flash(f"Only {allowed} of \"{product['name']}\" left - added that many.", 'error')
+    else:
+        flash('Item added to cart.', 'success')
     return redirect(request.referrer or url_for('products.index'))
 
 
@@ -137,9 +176,19 @@ def update():
             if not (i['product_id'] == product_id and i.get('size') == size and i.get('color') == color)
         ]
     else:
+        from app.db import get_db
+        try:
+            product = get_db().products.find_one({'_id': ObjectId(product_id)})
+        except Exception:
+            product = None
+
+        allowed = available_quantity(product, quantity) if product else 0
+        if allowed < quantity:
+            flash(f"Only {allowed} left - the quantity has been adjusted."
+                  if allowed else 'That item is sold out.', 'error')
         for item in cart:
             if item['product_id'] == product_id and item.get('size') == size and item.get('color') == color:
-                item['quantity'] = quantity
+                item['quantity'] = max(1, allowed)
                 break
     _save_cart(cart)
     return redirect(url_for('cart.index'))

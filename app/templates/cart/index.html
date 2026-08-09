@@ -39,6 +39,10 @@
   .zone-picker select:focus { border-color: var(--text); }
   .zone-apply { margin-top: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: #fff; font-family: inherit; font-size: 13px; cursor: pointer; }
   .delivery-unknown { color: var(--muted); font-size: 13px; }
+  .stock-warning { font-size: 12px; color: var(--accent); font-weight: 500; margin-bottom: 8px; }
+  .stock-low { font-size: 12px; color: #b45309; margin-bottom: 8px; }
+  .cart-blocked { font-size: 12px; color: var(--accent); line-height: 1.5; margin-top: 16px; }
+  .checkout-btn.disabled { background: #d8d4cf; color: #6b6b67; cursor: not-allowed; }
   .delivery-note { font-size: 12px; color: var(--muted); margin: -6px 0 12px; line-height: 1.5; }
   .summary-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 600; }
   .checkout-btn { display: block; width: 100%; padding: 16px; border-radius: 999px; background: var(--text); color: #fff; border: none; font-size: 15px; font-family: inherit; cursor: pointer; margin-top: 20px; text-align: center; text-decoration: none; font-weight: 500; }
@@ -111,6 +115,13 @@
               {% if item.size and item.color %} · {% endif %}
               {% if item.color %}<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ item.color }};vertical-align:middle;border:1px solid #ccc;margin-right:3px"></span>{% endif %}
             </div>
+            {% if item.out_of_stock %}
+            <div class="stock-warning">Sold out — remove it to check out</div>
+            {% elif item.stock_left is not none and item.quantity > item.stock_left %}
+            <div class="stock-warning">Only {{ item.stock_left }} left — lower the quantity to check out</div>
+            {% elif item.stock_left is not none and item.stock_left <= 5 %}
+            <div class="stock-low">Only {{ item.stock_left }} left</div>
+            {% endif %}
             <!-- Qty update form -->
             <form method="post" action="{{ url_for('cart.update') }}" style="display:inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -182,7 +193,16 @@
       {% endif %}
       <div class="summary-divider"></div>
       <div class="summary-total"><span>Total</span><span>{{ total | money }}</span></div>
+      {% if unavailable %}
+      <div class="cart-blocked">
+        {{ unavailable | length }} item{{ 's' if unavailable | length != 1 }} in your cart
+        {{ 'are' if unavailable | length != 1 else 'is' }} no longer available.
+        Remove {{ 'them' if unavailable | length != 1 else 'it' }} to continue.
+      </div>
+      <span class="checkout-btn disabled" aria-disabled="true">Proceed to Checkout</span>
+      {% else %}
       <a href="{{ url_for('checkout.index') }}" class="checkout-btn">Proceed to Checkout</a>
+      {% endif %}
       <a href="{{ url_for('products.index') }}" class="continue-link">Continue shopping</a>
       <a href="https://wa.me/2349020149795?text={{ wa_message | urlencode }}"
          class="whatsapp-btn" target="_blank" rel="noopener noreferrer">

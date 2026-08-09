@@ -7,6 +7,7 @@ from app.delivery.repository import ZoneRepository
 from app.emails import send_order_emails
 from app.extensions import limiter
 from app.pricing import effective_price, is_on_sale
+from app.stock import is_out_of_stock, stock_level
 
 checkout_bp = Blueprint('checkout', __name__, url_prefix='/checkout')
 
@@ -102,24 +103,33 @@ def index():
                 # order records the weight it was actually charged for.
                 'weight_grams': product.get('weight_grams'),
                 'shipping_class': product.get('shipping_class'),
+                'out_of_stock': is_out_of_stock(product),
+                'stock_left': stock_level(product),
             })
 
     if not enriched:
         flash('Some cart items are no longer available.', 'error')
         return redirect(url_for('cart.index'))
 
-    subtotal = sum(i['subtotal'] for i in enriched)
+    # Re-read at checkout, not taken from the session: an item can sell out
+    # while it sits in someone's cart.
+    unavailable = [i for i in enriched
+                   if i['out_of_stock'] or (i['stock_left'] is not None
+                                            and i['quantity'] > i['stock_left'])]
+
+    purchasable = [i for i in enriched if not i['out_of_stock']]
+    subtotal = sum(i['subtotal'] for i in purchasable)
     zones = ZoneRepository(db).active_zones()
 
     if request.method == 'GET':
         # An estimate from whatever the shopper already told the cart page.
         quote = quote_delivery(
-            enriched, _address_for_quote(session.get('delivery_zone_id')))
+            purchasable, _address_for_quote(session.get('delivery_zone_id')))
         shipping = float(quote.amount) if quote.resolved else 0.0
         return render_template('checkout/index.html',
                                cart=enriched, subtotal=subtotal,
                                shipping=shipping, total=subtotal + shipping,
-                               quote=quote, zones=zones,
+                               quote=quote, zones=zones, unavailable=unavailable,
                                form={'zone_id': session.get('delivery_zone_id') or ''})
 
     # POST — place order
@@ -136,7 +146,7 @@ def index():
     # The fee is never read from the form. It is recalculated here, from the
     # rate tables as they stand right now, whatever the page was showing.
     quote = quote_delivery(
-        enriched, _address_for_quote(zone_id, state, city), strict=True)
+        purchasable, _address_for_quote(zone_id, state, city), strict=True)
     shipping = float(quote.amount)
     total = subtotal + shipping
 
@@ -146,10 +156,18 @@ def index():
                                cart=enriched, subtotal=subtotal,
                                shipping=shipping if quote.resolved else 0.0,
                                total=subtotal + (shipping if quote.resolved else 0.0),
-                               quote=quote, zones=zones, form=request.form)
+                               quote=quote, zones=zones, unavailable=unavailable,
+                               form=request.form)
 
     if not name or not email or not address_line or not city or not country:
         return _reshow('Please fill in all required fields.')
+
+    if unavailable:
+        # Never quietly drop a line and take the money for the rest - the
+        # shopper decides what to do about the item that sold out.
+        names = ', '.join(f"\"{i['product_name']}\"" for i in unavailable)
+        return _reshow(f'{names} sold out or has fewer left than you asked for. '
+                       'Please update your cart before placing the order.')
 
     if not quote.resolved:
         # No delivery rate, no order. Guessing a fee here is how a shop
@@ -167,7 +185,9 @@ def index():
             'state': state,
             'country': country,
         },
-        'items': enriched,
+        # The order records what was bought, not what was on the shelf.
+        'items': [{k: v for k, v in i.items()
+                   if k not in ('out_of_stock', 'stock_left')} for i in purchasable],
         'subtotal': round(subtotal, 2),
         # Kept as a float, and kept in step with delivery.amount below: the
         # order templates and the emails have always read this field.

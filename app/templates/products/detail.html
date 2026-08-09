@@ -119,6 +119,10 @@
     transition: opacity 0.15s;
   }
   .add-to-cart:hover { opacity: 0.85; }
+  .add-to-cart:disabled { background: #d8d4cf; color: #6b6b67; cursor: not-allowed; }
+  .add-to-cart:disabled:hover { opacity: 1; }
+  .stock-out { color: var(--accent); font-weight: 500; }
+  .stock-low { color: #b45309; font-weight: 500; }
   .wishlist-btn {
     width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 50%;
     background: #fff; cursor: pointer; display: flex; align-items: center;
@@ -137,8 +141,15 @@
   .product-card { display: block; color: inherit; }
   .product-card-img {
     width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; margin-bottom: 10px;
-    overflow: hidden; background: #FAF8F5;
+    overflow: hidden; background: #FAF8F5; position: relative;
   }
+  .soldout-badge {
+    position: absolute; top: 8px; left: 8px; z-index: 2;
+    font-size: 10px; font-weight: 500; letter-spacing: .08em;
+    text-transform: uppercase; background: #6b6b67; color: #fff;
+    padding: 3px 8px; border-radius: 2px;
+  }
+  .product-card.is-soldout .product-card-img img { opacity: .45; filter: grayscale(1); }
   .product-card-img img {
     width: 100%; height: 100%;
     object-fit: contain; object-position: center;
@@ -252,7 +263,11 @@
             <span class="qty-input" id="qty-display">1</span>
             <button class="qty-btn" type="button" onclick="adjustQty(1)">+</button>
           </div>
+          {% if is_out_of_stock(product) %}
+          <button class="add-to-cart" type="submit" disabled>Sold out</button>
+          {% else %}
           <button class="add-to-cart" type="submit">Add to cart</button>
+          {% endif %}
           <button class="wishlist-btn {% if product._id in wishlist_ids %}wished{% endif %}"
                   type="button" aria-label="Add to wishlist"
                   onclick="toggleWishlist(event, this, '{{ product._id }}')">
@@ -266,7 +281,15 @@
       <div class="product-meta">
         <div>Category: <span>{{ product.get('category', '—') }}</span></div>
         <div>SKU: <span>LP-{{ product._id[:6].upper() }}</span></div>
-        <div>Availability: <span>In stock</span></div>
+        <div>Availability:
+          {% if is_out_of_stock(product) %}
+          <span class="stock-out">Out of stock</span>
+          {% elif is_low_stock(product) %}
+          <span class="stock-low">Only {{ stock_level(product) }} left</span>
+          {% else %}
+          <span>In stock</span>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -278,8 +301,9 @@
   <h2 class="section-title">You may also like</h2>
   <div class="related-grid">
     {% for p in related %}
-    <a class="product-card" href="/products/{{ p._id }}">
+    <a class="product-card {% if is_out_of_stock(p) %}is-soldout{% endif %}" href="/products/{{ p._id }}">
       <div class="product-card-img">
+        {% if is_out_of_stock(p) %}<span class="soldout-badge">Sold out</span>{% endif %}
         {% if p.get('images') %}
         <img src="{{ p.images[0] | image_url }}" alt="{{ p.name }}">
         {% endif %}

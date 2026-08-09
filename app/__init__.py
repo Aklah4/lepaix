@@ -68,10 +68,14 @@ def create_app():
         return redirect(request.referrer or url_for('index.index'))
 
     from app.pricing import is_on_sale, effective_price, discount_percent
+    from app.stock import is_low_stock, is_out_of_stock, stock_level
     app.jinja_env.globals.update(
         is_on_sale=is_on_sale,
         effective_price=effective_price,
         discount_percent=discount_percent,
+        is_out_of_stock=is_out_of_stock,
+        is_low_stock=is_low_stock,
+        stock_level=stock_level,
     )
 
     @app.template_filter('image_url')

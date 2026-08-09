@@ -7,9 +7,43 @@ admin_orders_bp = Blueprint('admin_orders', __name__, url_prefix='/admin/orders'
 
 ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
 
+# Statuses in which an order holds its items. Moving an order into one of
+# these takes the stock off the shelf; moving it out puts the stock back.
+# 'pending' is deliberately absent - an order that has been placed but not yet
+# confirmed reserves nothing, so an abandoned checkout cannot sit on stock.
+STOCK_HOLDING_STATUSES = {'processing', 'shipped', 'delivered'}
+
 
 def _auth_required():
     return session.get('admin_id') is None
+
+
+def _move_stock(db, oid, order, new_status):
+    """Take stock off the shelf, or put it back, when an order changes status.
+
+    `stock_deducted` on the order is the record of which side of the line it
+    currently sits on, so flipping a status back and forth - or double-clicking
+    the button - can never deduct the same order twice.
+    """
+    from app.stock import deduct_for_order, restore_for_order
+
+    already_deducted = bool(order.get('stock_deducted'))
+    should_hold = new_status in STOCK_HOLDING_STATUSES
+
+    if should_hold and not already_deducted:
+        short = deduct_for_order(db, order)
+        db.orders.update_one({'_id': oid}, {'$set': {'stock_deducted': True}})
+        if short:
+            flash('Stock updated, but there was not enough of '
+                  f"{', '.join(short)} on hand - now showing as sold out. "
+                  'Check the count before you promise a delivery date.', 'error')
+        else:
+            flash('Stock reduced for this order.', 'success')
+
+    elif not should_hold and already_deducted:
+        restore_for_order(db, order)
+        db.orders.update_one({'_id': oid}, {'$set': {'stock_deducted': False}})
+        flash('Stock from this order has been put back.', 'success')
 
 
 @admin_orders_bp.route('/')
@@ -121,6 +155,8 @@ def update_status(order_id):
         {'$set': {'status': new_status, 'updated_at': datetime.now(timezone.utc)}},
     )
     flash(f'Order status updated to {new_status}.', 'success')
+
+    _move_stock(db, oid, order, new_status)
 
     # Notify the customer once, only when the order first becomes 'shipped'.
     if new_status == 'shipped' and old_status != 'shipped':
