@@ -40,6 +40,11 @@
   .totals-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; }
   .totals-row .label { color: var(--muted); }
   .totals-divider { height: 1px; background: var(--border); margin: 10px 0; }
+  .breakdown-row { font-size: 12px; color: var(--muted); margin: -4px 0 8px; padding-left: 10px; }
+  .breakdown-row span { color: var(--muted); }
+  .delivery-unknown { color: var(--muted); font-size: 13px; }
+  .delivery-note { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .field-note { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
   .totals-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 600; }
   .place-order-btn { display: block; width: 100%; padding: 16px; border-radius: 999px; background: var(--text); color: #fff; border: none; font-size: 15px; font-family: inherit; cursor: pointer; margin-top: 20px; font-weight: 500; }
   .place-order-btn:hover { opacity: .85; }
@@ -110,12 +115,31 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>City <span class="required">*</span></label>
-              <input type="text" name="city" value="{{ form.city if form else '' }}" required placeholder="New York">
+              <label>City / LGA <span class="required">*</span></label>
+              <input type="text" name="city" value="{{ form.city if form else '' }}" required placeholder="Ikeja">
             </div>
             <div class="form-group">
+              <label>State</label>
+              <input type="text" name="state" value="{{ form.state if form else '' }}" placeholder="Lagos">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label>Country <span class="required">*</span></label>
-              <input type="text" name="country" value="{{ form.country if form else '' }}" required placeholder="United States">
+              <input type="text" name="country" value="{{ form.country if form else '' }}" required placeholder="Nigeria">
+            </div>
+            <div class="form-group">
+              <label>Delivery area</label>
+              <select name="zone_id">
+                <option value="">Work it out from my address</option>
+                {% for z in zones %}
+                <option value="{{ z.zone_id }}"
+                        {% if form and form.zone_id and form.zone_id|string == z.zone_id|string %}selected{% endif %}>
+                  {{ z.name }}{% if z.state and z.state not in z.name %} · {{ z.state }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <p class="field-note">Picking an area here overrides the address above.</p>
             </div>
           </div>
           <div class="form-group">
@@ -151,7 +175,27 @@
 
           <div class="totals-block">
             <div class="totals-row"><span class="label">Subtotal</span><span>{{ subtotal | money }}</span></div>
-            <div class="totals-row"><span class="label">Shipping</span><span>Free</span></div>
+            <div class="totals-row">
+              <span class="label">Delivery</span>
+              {% if quote.resolved %}
+                <span>{{ 'Free' if quote.amount == 0 else shipping | money }}</span>
+              {% else %}
+                <span class="delivery-unknown">Calculated below</span>
+              {% endif %}
+            </div>
+            {% if quote.resolved %}
+              {% for line in quote.breakdown %}
+              <div class="totals-row breakdown-row">
+                <span class="label">{{ line.label }}</span>
+                <span>{{ line.amount | money }}</span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p class="delivery-note">
+                Fill in your city and state, or pick a delivery area, and we'll price the
+                delivery when you place the order.
+              </p>
+            {% endif %}
             <div class="totals-divider"></div>
             <div class="totals-total"><span>Total</span><span>{{ total | money }}</span></div>
           </div>

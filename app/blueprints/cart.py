@@ -1,6 +1,8 @@
 from flask import Blueprint, session, redirect, request, url_for, render_template, flash
 from bson import ObjectId
 
+from app.delivery import quote_delivery
+from app.delivery.repository import ZoneRepository
 from app.pricing import effective_price, is_on_sale
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
@@ -40,10 +42,38 @@ def index():
                 'image': product.get('images', [None])[0],
                 'subtotal': unit_price * item['quantity'],
                 'original_price': product['price'] if is_on_sale(product) else None,
+                'weight_grams': product.get('weight_grams'),
+                'shipping_class': product.get('shipping_class'),
             })
 
     cart_total = sum(i['subtotal'] for i in enriched)
-    return render_template('cart/index.html', cart=enriched, cart_total=cart_total)
+
+    # An estimate, not a commitment: the fee is recalculated at checkout.
+    selected_zone_id = session.get('delivery_zone_id')
+    address = {'zone_id': selected_zone_id} if selected_zone_id else None
+    quote = quote_delivery(enriched, address)
+    delivery = float(quote.amount) if quote.resolved else 0.0
+
+    return render_template('cart/index.html', cart=enriched, cart_total=cart_total,
+                           quote=quote, delivery=delivery,
+                           total=cart_total + delivery,
+                           zones=ZoneRepository(db).active_zones(),
+                           selected_zone_id=selected_zone_id)
+
+
+@cart_bp.route('/delivery', methods=['POST'])
+def set_delivery_zone():
+    """Remember the delivery area the shopper picked, for the estimate."""
+    zone_id = request.form.get('zone_id', '').strip()
+    if zone_id:
+        try:
+            session['delivery_zone_id'] = int(zone_id)
+        except ValueError:
+            session.pop('delivery_zone_id', None)
+    else:
+        session.pop('delivery_zone_id', None)
+    session.modified = True
+    return redirect(url_for('cart.index'))
 
 
 @cart_bp.route('/add', methods=['POST'])

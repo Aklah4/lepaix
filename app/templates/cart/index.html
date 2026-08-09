@@ -33,6 +33,13 @@
   .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; }
   .summary-row .label { color: var(--muted); }
   .summary-divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .zone-picker { margin-bottom: 18px; }
+  .zone-picker label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .zone-picker select { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; background: #fff; color: var(--text); outline: none; }
+  .zone-picker select:focus { border-color: var(--text); }
+  .zone-apply { margin-top: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: #fff; font-family: inherit; font-size: 13px; cursor: pointer; }
+  .delivery-unknown { color: var(--muted); font-size: 13px; }
+  .delivery-note { font-size: 12px; color: var(--muted); margin: -6px 0 12px; line-height: 1.5; }
   .summary-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 600; }
   .checkout-btn { display: block; width: 100%; padding: 16px; border-radius: 999px; background: var(--text); color: #fff; border: none; font-size: 15px; font-family: inherit; cursor: pointer; margin-top: 20px; text-align: center; text-decoration: none; font-weight: 500; }
   .checkout-btn:hover { opacity: .85; }
@@ -139,13 +146,42 @@
     {% for item in cart %}
     {% set _ = item_lines.append(item.quantity ~ 'x ' ~ item.name ~ ' - ' ~ (item.price | money) ~ ' each (' ~ (item.subtotal | money) ~ ')') %}
     {% endfor %}
-    {% set wa_message = 'Hi Lepaix! I\'d like to continue my order on WhatsApp.\n\nItems:\n' ~ (item_lines | join('\n')) ~ '\n\nTotal: ' ~ (cart_total | money) %}
+    {% set wa_message = 'Hi Lepaix! I\'d like to continue my order on WhatsApp.\n\nItems:\n' ~ (item_lines | join('\n')) ~ '\n\nTotal: ' ~ (total | money) %}
     <div class="cart-summary">
       <h2>Order Summary</h2>
+
+      {% if zones %}
+      <form method="post" action="{{ url_for('cart.set_delivery_zone') }}" class="zone-picker">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="zone_id">Delivery area</label>
+        <select id="zone_id" name="zone_id" onchange="this.form.submit()">
+          <option value="">Select your area…</option>
+          {% for z in zones %}
+          <option value="{{ z.zone_id }}" {% if selected_zone_id == z.zone_id %}selected{% endif %}>
+            {{ z.name }}{% if z.state and z.state not in z.name %} · {{ z.state }}{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <noscript><button type="submit" class="zone-apply">Update</button></noscript>
+      </form>
+      {% endif %}
+
       <div class="summary-row"><span class="label">Subtotal</span><span>{{ cart_total | money }}</span></div>
-      <div class="summary-row"><span class="label">Shipping</span><span>Free</span></div>
+      <div class="summary-row">
+        <span class="label">Delivery</span>
+        {% if quote.resolved %}
+          <span>{{ 'Free' if quote.amount == 0 else delivery | money }}</span>
+        {% else %}
+          <span class="delivery-unknown">Select your area</span>
+        {% endif %}
+      </div>
+      {% if quote.resolved and quote.breakdown %}
+      <p class="delivery-note">
+        {{ quote.breakdown | map(attribute='label') | join(' · ') }}
+      </p>
+      {% endif %}
       <div class="summary-divider"></div>
-      <div class="summary-total"><span>Total</span><span>{{ cart_total | money }}</span></div>
+      <div class="summary-total"><span>Total</span><span>{{ total | money }}</span></div>
       <a href="{{ url_for('checkout.index') }}" class="checkout-btn">Proceed to Checkout</a>
       <a href="{{ url_for('products.index') }}" class="continue-link">Continue shopping</a>
       <a href="https://wa.me/2349020149795?text={{ wa_message | urlencode }}"

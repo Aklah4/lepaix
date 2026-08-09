@@ -12,6 +12,7 @@
       <a href="{{ url_for('admin_categories.index') }}">Categories</a>
       <a href="{{ url_for('admin_blog.index') }}">Blog</a>
       <a href="#">Customers</a>
+      <a href="{{ url_for('admin_delivery.index') }}">Delivery</a>
       <a href="{{ url_for('admin_settings.index') }}">Settings</a>
     </nav>
   </aside>
@@ -101,6 +102,27 @@
                      placeholder="Leave blank if not on sale"
                      value="{{ product.sale_price if product.get('sale_price') else '' }}" />
               <p class="field-hint">When set below the price, the product shows as on sale — the old price is struck through and customers are charged this amount.</p>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="weight_grams">Shipping weight (g)</label>
+                <input type="number" id="weight_grams" name="weight_grams" min="1" step="1"
+                       placeholder="Leave blank to use the default"
+                       value="{{ product.weight_grams if product.get('weight_grams') else '' }}" />
+                <p class="field-hint">Used to work out the delivery fee. Blank falls back to the default set in <a href="{{ url_for('admin_delivery.index') }}">Delivery</a>.</p>
+              </div>
+              <div class="field">
+                <label for="shipping_class">Shipping</label>
+                {% set shipping_class = product.get('shipping_class') or 'shippable' %}
+                <select id="shipping_class" name="shipping_class">
+                  <option value="shippable" {% if shipping_class == 'shippable' %}selected{% endif %}>Delivered — charge delivery</option>
+                  <option value="free_shipping" {% if shipping_class == 'free_shipping' %}selected{% endif %}>Free delivery on this item</option>
+                  <option value="pickup" {% if shipping_class == 'pickup' %}selected{% endif %}>Store pickup only</option>
+                  <option value="digital" {% if shipping_class == 'digital' %}selected{% endif %}>Digital — nothing to deliver</option>
+                </select>
+                <p class="field-hint">Anything other than the first option is left out of the delivery fee entirely.</p>
+              </div>
             </div>
 
             <div class="field">

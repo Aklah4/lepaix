@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if zone else 'Add' }} Zone — Admin{% endblock %}
+
+{% macro value(key, fallback='') -%}
+{{ form[key] if form and form.get(key) is not none else fallback }}
+{%- endmacro %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}">Categories</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_delivery.index') }}" class="active">Delivery</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow"><a href="{{ url_for('admin_delivery.index') }}">← Delivery</a></p>
+        <h1>{{ 'Edit zone' if zone else 'Add zone' }}</h1>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="panel">
+        <h2 class="panel-title">Where it covers</h2>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="name">Zone name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Lagos Mainland"
+                   value="{{ value('name', zone.name if zone else '') }}" />
+            <p class="field-hint">Customers see this in the delivery-area dropdown.</p>
+          </div>
+          <div class="field">
+            <label for="state">State <span class="req">*</span></label>
+            <input type="text" id="state" name="state" required placeholder="e.g. Lagos"
+                   value="{{ value('state', zone.state if zone else '') }}" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="areas">Cities / LGAs</label>
+          <textarea id="areas" name="areas" rows="5"
+                    placeholder="Ikeja&#10;Yaba&#10;Surulere">{{ value('areas', zone.areas_text if zone else '') }}</textarea>
+          <p class="field-hint">
+            One per line. Matching ignores case and punctuation, so “Ikeja G.R.A.” and
+            “ikeja gra” are the same place — but nothing is guessed: a city that isn't
+            listed anywhere falls through to the state zone below, or to no zone at all.
+          </p>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="is_state_fallback"
+                 {% if (form and form.get('is_state_fallback')) or (not form and zone and zone.is_state_fallback) %}checked{% endif %} />
+          <span>
+            Use this zone for anywhere else in the state
+            <em>Only one zone per state should have this.</em>
+          </span>
+        </label>
+
+        <label class="check">
+          <input type="checkbox" name="active"
+                 {% if (form and form.get('active')) or (not form and (not zone or zone.active)) %}checked{% endif %} />
+          <span>Active
+            <em>An inactive zone stops being offered and stops matching addresses.</em>
+          </span>
+        </label>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">What it costs</h2>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="base_fee">Base fee (₦) <span class="req">*</span></label>
+            <input type="text" id="base_fee" name="base_fee" required placeholder="2000"
+                   value="{{ value('base_fee', '{:.2f}'.format(zone.base_fee) if zone else '') }}" />
+          </div>
+          <div class="field">
+            <label for="free_over_amount">Free delivery over (₦)</label>
+            <input type="text" id="free_over_amount" name="free_over_amount"
+                   placeholder="Leave blank to use the global figure"
+                   value="{{ value('free_over_amount', ('{:.2f}'.format(zone.free_over_amount) if zone and zone.free_over_amount != '' else '') if zone else '') }}" />
+            <p class="field-hint">A threshold that pays for itself nearby can lose money further out — set one here to override the global figure.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="weight_mode">How weight is charged</label>
+          <select id="weight_mode" name="weight_mode">
+            {% set mode = value('weight_mode', zone.weight_mode if zone else 'brackets') %}
+            <option value="brackets" {% if mode == 'brackets' %}selected{% endif %}>Weight brackets</option>
+            <option value="per_kg" {% if mode == 'per_kg' %}selected{% endif %}>Rate per kg</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="brackets">Weight brackets</label>
+          <textarea id="brackets" name="brackets" rows="5"
+                    placeholder="1000: 0&#10;5000: 750&#10;*: 1500">{{ value('brackets', zone.brackets_text if zone else '') }}</textarea>
+          <p class="field-hint">
+            One <code>grams: extra ₦</code> per line, on top of the base fee. The first line
+            whose weight covers the parcel wins. Finish with <code>*: amount</code> so
+            anything heavier than the table still has a price.
+          </p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="included_kg">Included weight (kg)</label>
+            <input type="text" id="included_kg" name="included_kg" placeholder="2"
+                   value="{{ value('included_kg', '{:.2f}'.format(zone.included_kg) if zone else '') }}" />
+            <p class="field-hint">Per-kg mode only. Weight up to this is covered by the base fee.</p>
+          </div>
+          <div class="field">
+            <label for="rate_per_kg">Rate per extra kg (₦)</label>
+            <input type="text" id="rate_per_kg" name="rate_per_kg" placeholder="800"
+                   value="{{ value('rate_per_kg', '{:.2f}'.format(zone.rate_per_kg) if zone else '') }}" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('admin_delivery.index') }}" class="btn-secondary">Cancel</a>
+        <button type="submit" class="btn-primary">{{ 'Save zone' if zone else 'Add zone' }}</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+  .panel { margin-bottom:20px; }
+  .field { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
+  .field label { font-size:13px;color:var(--muted); }
+  .req { color:var(--accent); }
+  .field input, .field select, .field textarea {
+    padding:11px 14px;border:1px solid var(--border);border-radius:12px;
+    font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none;
+  }
+  .field textarea { resize:vertical;line-height:1.6; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--text); }
+  .field-hint { font-size:12px;color:var(--muted);line-height:1.5;max-width:60ch; }
+  .field-hint code { background:var(--bg);padding:1px 5px;border-radius:5px;font-size:11px; }
+  .field-row { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+  .check { display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:12px; }
+  .check input { margin-top:3px; }
+  .check em { display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px; }
+  .form-actions { display:flex;justify-content:flex-end;gap:12px;margin-bottom:40px; }
+  @media (max-width:800px) { .field-row { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

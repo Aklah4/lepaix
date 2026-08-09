@@ -49,6 +49,24 @@ def _parse_sale_price(raw, price):
     return sale, None
 
 
+def _parse_weight(raw):
+    """Return (weight_in_grams_or_None, error_or_None).
+
+    Blank is allowed and stays null - delivery falls back to the configured
+    default item weight, which is the point of the field being nullable.
+    """
+    raw = (raw or '').strip()
+    if not raw:
+        return None, None
+    try:
+        grams = int(raw)
+    except ValueError:
+        return None, 'Weight must be a whole number of grams.'
+    if grams <= 0:
+        return None, 'Weight must be greater than zero grams.'
+    return grams, None
+
+
 def _flash_upload_problems(skipped, failed):
     """Tell the admin which files did not make it, instead of dropping them."""
     if skipped:
@@ -157,6 +175,12 @@ def add():
             return render_template('admin/products/add.html', categories=categories,
                                    **_size_ctx(categories, category))
 
+        weight_grams, weight_err = _parse_weight(request.form.get('weight_grams'))
+        if weight_err:
+            flash(weight_err, 'error')
+            return render_template('admin/products/add.html', categories=categories,
+                                   **_size_ctx(categories, category))
+
         images, skipped, failed = upload_images(
             request.files.getlist('images'), folder='lepaix/products',
             allowed=current_app.config['ALLOWED_EXTENSIONS'])
@@ -167,6 +191,8 @@ def add():
             'description': desc,
             'price':       price,
             'sale_price':  sale_price,
+            'weight_grams': weight_grams,
+            'shipping_class': request.form.get('shipping_class', 'shippable'),
             'stock':       stock,
             'category':    category,
             'status':      status,
@@ -247,6 +273,12 @@ def edit(product_id):
             return render_template('admin/products/edit.html', product=product,
                                    categories=categories, **_size_ctx(categories, category))
 
+        weight_grams, weight_err = _parse_weight(request.form.get('weight_grams'))
+        if weight_err:
+            flash(weight_err, 'error')
+            return render_template('admin/products/edit.html', product=product,
+                                   categories=categories, **_size_ctx(categories, category))
+
         # Append newly uploaded images to existing ones
         existing_images = product.get('images', [])
         new_images, skipped, failed = upload_images(
@@ -261,6 +293,8 @@ def edit(product_id):
                 'description': desc,
                 'price':       price,
                 'sale_price':  sale_price,
+                'weight_grams': weight_grams,
+                'shipping_class': request.form.get('shipping_class', 'shippable'),
                 'stock':       stock,
                 'category':    category,
                 'status':      status,

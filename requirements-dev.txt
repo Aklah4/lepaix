@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Test-only. Kept out of requirements.txt so the deploy image stays lean.
+pytest==9.1.1

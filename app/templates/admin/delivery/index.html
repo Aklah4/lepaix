@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Delivery — Admin{% endblock %}
+
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}">Categories</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_delivery.index') }}" class="active">Delivery</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Shipping</p>
+        <h1>Delivery</h1>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('admin_delivery.add_zone') }}" class="btn-add">+ Add zone</a>
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link">Sign out</a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <p class="hint">
+      Rates take effect on the next quote — no deploy needed. A customer's address is
+      matched to a zone by their state and city; if nothing matches, checkout tells them
+      we don't deliver there yet rather than guessing a price.
+    </p>
+
+    <!-- ── Zones ─────────────────────────────────────────────────────── -->
+    <div class="panel">
+      <h2 class="panel-title">Zones</h2>
+      {% if zones %}
+      <div class="table-wrap">
+        <table class="zone-table">
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>State</th>
+              <th>Areas</th>
+              <th>Base fee</th>
+              <th>Weight</th>
+              <th>Free over</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for z in zones %}
+            <tr class="{{ 'inactive' if not z.active }}">
+              <td>
+                <span class="zone-name">{{ z.name }}</span>
+                <span class="zone-id">#{{ z.zone_id }}</span>
+                {% if not z.active %}<span class="badge badge-draft">Inactive</span>{% endif %}
+              </td>
+              <td>{{ z.state }}</td>
+              <td class="areas">
+                {% if z.is_state_fallback %}
+                  <span class="badge badge-processing">Whole state</span>
+                {% endif %}
+                {{ z.area_names or '—' }}
+              </td>
+              <td class="num">₦{{ '{:,.2f}'.format(z.base_fee_display) }}</td>
+              <td>{{ 'Per kg' if z.weight_mode == 'per_kg' else 'Brackets' }}</td>
+              <td class="num">
+                {% if z.free_over_display is not none %}
+                  ₦{{ '{:,.0f}'.format(z.free_over_display) }}
+                {% else %}
+                  <span class="muted">Global</span>
+                {% endif %}
+              </td>
+              <td class="row-actions">
+                <a href="{{ url_for('admin_delivery.edit_zone', zone_oid=z._id) }}">Edit</a>
+                <form method="post"
+                      action="{{ url_for('admin_delivery.delete_zone', zone_oid=z._id) }}"
+                      onsubmit="return confirm('Delete {{ z.name }}? Orders already placed keep the fee they were quoted.');"
+                      style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="delete-btn">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>No delivery zones yet — checkout can't price a delivery until there is at least one.</p>
+        <a href="{{ url_for('admin_delivery.add_zone') }}" class="btn-add">Add your first zone</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ── Global settings ───────────────────────────────────────────── -->
+    <form method="post" action="{{ url_for('admin_delivery.save_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="panel">
+        <h2 class="panel-title">Global settings</h2>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="strategy">Pricing</label>
+            <select id="strategy" name="strategy">
+              <option value="zone" {% if settings.strategy == 'zone' %}selected{% endif %}>Zone rate tables</option>
+              <option value="flat" {% if settings.strategy == 'flat' %}selected{% endif %}>One flat rate everywhere</option>
+            </select>
+            <p class="field-hint">Zone rates are the normal setting. The flat rate is also what gets used if pricing ever fails.</p>
+          </div>
+          <div class="field">
+            <label for="flat_rate_amount">Flat rate (₦)</label>
+            <input type="text" id="flat_rate_amount" name="flat_rate_amount"
+                   value="{{ '{:.2f}'.format(settings.flat_rate_amount) }}" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="free_over_amount">Free delivery over (₦)</label>
+            <input type="text" id="free_over_amount" name="free_over_amount"
+                   placeholder="Leave blank for no free-delivery threshold"
+                   value="{{ '{:.2f}'.format(settings.free_over_amount) if settings.free_over_amount is not none else '' }}" />
+            <p class="field-hint">
+              Measured against the discounted subtotal of the items being delivered — sale
+              prices count, and digital or pickup items don't. A zone can override this
+              with its own figure.
+            </p>
+          </div>
+          <div class="field">
+            <label for="rounding_unit">Round fees to the nearest (₦)</label>
+            <input type="text" id="rounding_unit" name="rounding_unit"
+                   value="{{ '{:.0f}'.format(settings.rounding_unit) }}" />
+            <p class="field-hint">₦50 keeps quoted fees to figures a rider can actually make change for.</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="default_item_weight_g">Default item weight (g)</label>
+            <input type="number" id="default_item_weight_g" name="default_item_weight_g" min="0"
+                   value="{{ settings.default_item_weight_g }}" />
+            <p class="field-hint">Used for any product with no weight of its own.</p>
+          </div>
+          <div class="field">
+            <label for="min_billable_weight_g">Minimum billable weight (g)</label>
+            <input type="number" id="min_billable_weight_g" name="min_billable_weight_g" min="0"
+                   value="{{ settings.min_billable_weight_g }}" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="carrier_timeout_ms">Carrier timeout (ms)</label>
+          <input type="number" id="carrier_timeout_ms" name="carrier_timeout_ms" min="0" step="100"
+                 value="{{ settings.carrier_timeout_ms }}" />
+          <p class="field-hint">
+            How long a future courier-API integration may take before we stop waiting and
+            fall back to the flat rate. Nothing uses it yet.
+          </p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Save settings</button>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+  .hint { font-size:13px;color:var(--muted);margin-bottom:16px;max-width:70ch;line-height:1.6; }
+  .panel { margin-bottom:20px; }
+  .zone-table { width:100%;border-collapse:collapse;font-size:14px; }
+  .zone-table th { padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap; }
+  .zone-table td { padding:14px;border-bottom:1px solid var(--border);vertical-align:middle; }
+  .zone-table tr:last-child td { border-bottom:none; }
+  .zone-table tr.inactive { opacity:.55; }
+  .zone-name { font-weight:500; }
+  .zone-id { color:var(--muted);font-size:12px;margin-left:6px; }
+  .areas { color:var(--muted);max-width:280px; }
+  .num { white-space:nowrap; }
+  .muted { color:var(--muted); }
+  .row-actions { white-space:nowrap;text-align:right; }
+  .row-actions a { font-size:13px;margin-right:12px; }
+  .delete-btn { background:none;border:none;color:var(--accent);font-family:inherit;font-size:13px;cursor:pointer;padding:0; }
+  .field { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+  .field label { font-size:13px;color:var(--muted); }
+  .field input, .field select, .field textarea {
+    padding:11px 14px;border:1px solid var(--border);border-radius:12px;
+    font-family:inherit;font-size:14px;background:var(--surface);color:var(--text);outline:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--text); }
+  .field-hint { font-size:12px;color:var(--muted);line-height:1.5; }
+  .field-row { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+  .form-actions { display:flex;justify-content:flex-end;gap:12px;margin-top:8px; }
+  @media (max-width:800px) { .field-row { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

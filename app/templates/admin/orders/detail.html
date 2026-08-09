@@ -84,6 +84,7 @@
       <a href="{{ url_for('admin_categories.index') }}">Categories</a>
       <a href="{{ url_for('admin_blog.index') }}">Blog</a>
       <a href="#">Customers</a>
+      <a href="{{ url_for('admin_delivery.index') }}">Delivery</a>
       <a href="{{ url_for('admin_settings.index') }}">Settings</a>
     </nav>
   </aside>
@@ -164,6 +165,20 @@
               <span style="color:var(--muted)">Shipping</span>
               <span>₦{{ '%.2f' | format(order.get('shipping_cost', 0)) }}</span>
             </div>
+            {# The delivery quote as it stood when the order was placed. Rate
+               changes since then do not touch it. #}
+            {% if order.get('delivery') %}
+            {% for line in order.delivery.get('breakdown', []) %}
+            <div class="totals-row" style="font-size:12px;color:var(--muted);padding-left:10px">
+              <span>{{ line.label }}</span>
+              <span>₦{{ line.amount }}</span>
+            </div>
+            {% endfor %}
+            <div class="totals-row" style="font-size:12px;color:var(--muted);padding-left:10px">
+              <span>Zone {{ order.delivery.zone_id if order.delivery.zone_id is not none else '—' }}</span>
+              <span>{{ order.delivery.get('billable_weight_g', 0) }} g</span>
+            </div>
+            {% endif %}
             <div class="totals-row total">
               <span>Total</span>
               <span>₦{{ '%.2f' | format(order.total) }}</span>
