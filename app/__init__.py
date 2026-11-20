@@ -34,6 +34,16 @@ def create_app():
     # Initialize database connection
     init_db(app)
 
+    # Rate limits must be shared by every worker and survive process restarts.
+    # Use the app's existing MongoDB cluster and database, with collections
+    # dedicated to the limits package so the deployment needs no extra service.
+    app.config['RATELIMIT_STORAGE_URI'] = app.config['MONGO_URI']
+    app.config['RATELIMIT_STORAGE_OPTIONS'] = {
+        'database_name': app.config['MONGO_DBNAME'],
+        'counter_collection_name': 'rate_limit_counters',
+        'window_collection_name': 'rate_limit_windows',
+    }
+
     limiter.init_app(app)
     csrf.init_app(app)
 
