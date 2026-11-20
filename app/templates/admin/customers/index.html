@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Customers - Admin{% endblock %}
+{% block content %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="brand">Lepaix</div>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('admin_orders.index') }}">Orders</a>
+      <a href="{{ url_for('admin_products.index') }}">Products</a>
+      <a href="{{ url_for('admin_categories.index') }}">Categories</a>
+      <a href="{{ url_for('admin_blog.index') }}">Blog</a>
+      <a href="{{ url_for('admin_customers.index') }}" class="active">Customers</a>
+      <a href="{{ url_for('admin_delivery.index') }}">Delivery</a>
+      <a href="{{ url_for('admin_settings.index') }}">Settings</a>
+    </nav>
+  </aside>
+
+  <section class="admin-content">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">Store relationships</p>
+        <h1>Customers</h1>
+        <p>{{ total }} unique customer{{ '' if total == 1 else 's' }} from placed orders</p>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('admin_auth.logout') }}" class="text-link">Sign out</a>
+      </div>
+    </header>
+
+    <section class="panel">
+      <form method="get" class="customer-search" role="search">
+        <label for="customer-search">Search customers</label>
+        <input id="customer-search" name="q" type="search" value="{{ search }}"
+               placeholder="Name, email, or phone">
+        <button type="submit">Search</button>
+        {% if search %}<a href="{{ url_for('admin_customers.index') }}">Clear</a>{% endif %}
+      </form>
+
+      <div class="customer-table-wrap">
+        <table class="customer-table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Last order</th></tr>
+          </thead>
+          <tbody>
+            {% for item in customers %}
+            {% set customer = item.customer or {} %}
+            <tr>
+              <td>{{ customer.get('name') or '—' }}</td>
+              <td>{% if customer.get('email') %}<a href="mailto:{{ customer.email }}">{{ customer.email }}</a>{% else %}—{% endif %}</td>
+              <td>{{ customer.get('phone') or '—' }}</td>
+              <td>{{ item.order_count }}</td>
+              <td>{% if item.last_order %}{{ item.last_order.strftime('%d %b %Y') }}{% else %}—{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="empty-state">{% if search %}No customers matched that search.{% else %}Customers will appear here after their first order.{% endif %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if total_pages > 1 %}
+      <nav class="customer-pagination" aria-label="Customer pages">
+        {% if page > 1 %}<a href="{{ url_for('admin_customers.index', page=page - 1, q=search) }}">Previous</a>{% endif %}
+        <span>Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}<a href="{{ url_for('admin_customers.index', page=page + 1, q=search) }}">Next</a>{% endif %}
+      </nav>
+      {% endif %}
+    </section>
+  </section>
+</div>
+<style>
+  .customer-search{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+  .customer-search label{font-size:13px;font-weight:600}
+  .customer-search input{min-width:240px;flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font:inherit}
+  .customer-search button{padding:10px 16px;border:0;border-radius:6px;background:var(--text);color:#fff;font:inherit;cursor:pointer}
+  .customer-search a,.customer-table a,.customer-pagination a{color:var(--text);text-underline-offset:3px}
+  .customer-table-wrap{overflow-x:auto}
+  .customer-table{width:100%;border-collapse:collapse;text-align:left}
+  .customer-table th,.customer-table td{padding:13px 12px;border-bottom:1px solid var(--border);font-size:14px;white-space:nowrap}
+  .customer-table th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .customer-table .empty-state{text-align:center;color:var(--muted);padding:36px 12px}
+  .customer-pagination{display:flex;align-items:center;justify-content:center;gap:18px;padding-top:20px;font-size:14px}
+  @media(max-width:640px){.customer-search{align-items:stretch}.customer-search label{width:100%}.customer-search input{min-width:0}}
+</style>
+{% endblock %}

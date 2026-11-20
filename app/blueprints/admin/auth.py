@@ -106,6 +106,12 @@ def dashboard():
     total_products     = db.products.count_documents({})
     published_products = db.products.count_documents({'status': 'published'})
     draft_products     = db.products.count_documents({'status': 'draft'})
+    customer_count = db.orders.aggregate([
+        {'$match': {'customer.email': {'$exists': True, '$ne': ''}}},
+        {'$group': {'_id': {'$toLower': '$customer.email'}}},
+        {'$count': 'total'},
+    ])
+    total_customers = next(iter(customer_count), {}).get('total', 0)
 
     # ── Daily revenue/orders (resets each business day) ──────────────────────
     day = parse_day(request.args.get('date'))
@@ -164,6 +170,7 @@ def dashboard():
         day_revenue=day_revenue,
         total_orders=total_orders,
         total_revenue=total_revenue,
+        total_customers=total_customers,
         low_stock=low_stock,
         recent_orders=day_order_list,
     )

@@ -113,6 +113,7 @@ def create_app():
     from app.blueprints.admin.orders import admin_orders_bp
     from app.blueprints.admin.settings import admin_settings_bp
     from app.blueprints.admin.delivery import admin_delivery_bp
+    from app.blueprints.admin.customers import admin_customers_bp
     from app.blueprints.admin.blog import admin_blog_bp
     from app.blueprints.admin.categories import admin_categories_bp
     from app.blueprints.index import index_bp
@@ -130,6 +131,7 @@ def create_app():
     app.register_blueprint(admin_orders_bp)
     app.register_blueprint(admin_settings_bp)
     app.register_blueprint(admin_delivery_bp)
+    app.register_blueprint(admin_customers_bp)
     app.register_blueprint(admin_blog_bp)
     app.register_blueprint(admin_categories_bp)
     app.register_blueprint(index_bp)

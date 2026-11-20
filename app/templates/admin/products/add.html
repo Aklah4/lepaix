@@ -11,7 +11,7 @@
       <a href="{{ url_for('admin_products.index') }}" class="active">Products</a>
       <a href="{{ url_for('admin_categories.index') }}">Categories</a>
       <a href="{{ url_for('admin_blog.index') }}">Blog</a>
-      <a href="#">Customers</a>
+      <a href="{{ url_for('admin_customers.index') }}">Customers</a>
       <a href="{{ url_for('admin_delivery.index') }}">Delivery</a>
       <a href="{{ url_for('admin_settings.index') }}">Settings</a>
     </nav>
@@ -302,7 +302,9 @@
   const previewGrid = document.getElementById('image-preview-grid');
   const uploadZone = document.getElementById('upload-zone');
 
-  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('click', e => {
+    if (!e.target.closest('label')) fileInput.click();
+  });
   uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
   uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
   uploadZone.addEventListener('drop', e => {
